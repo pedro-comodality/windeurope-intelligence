@@ -584,4 +584,3 @@ with tab5:
                 height=900,
                 scrolling=True
             )
-```
