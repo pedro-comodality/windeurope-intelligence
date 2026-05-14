@@ -1,6 +1,10 @@
 
 import streamlit as st
 
+from src.reporting.pdf_report import (
+    generate_executive_pdf
+)
+
 # =====================================================
 # PAGE CONFIG
 # =====================================================
@@ -108,6 +112,10 @@ h1, h2, h3 {
 # =====================================================
 
 st.title("🌊 WindEurope 2026 Intelligence Platform")
+
+st.caption(
+    "AI-powered offshore wind ecosystem intelligence platform"
+)
 
 # =====================================================
 # LOAD DATA
@@ -411,7 +419,15 @@ with tab2:
             st.write(row["strategic_level"])
 
             st.markdown("### Lead Tier")
-            st.write(row["lead_tier"])
+
+          if row["lead_tier"] == "HOT":
+    st.error("🔥 HOT LEAD")
+
+elif row["lead_tier"] == "WARM":
+    st.warning("🟠 WARM LEAD")
+
+else:
+    st.success("🟢 COLD LEAD")
 
         with col2:
 
@@ -434,6 +450,20 @@ with tab2:
         st.subheader("📋 Executive Summary")
 
         summary = generate_executive_summary(row)
+
+pdf_path = generate_executive_pdf(
+    row,
+    summary
+)
+
+with open(pdf_path, "rb") as pdf_file:
+
+    st.download_button(
+        label="📄 Download Executive PDF",
+        data=pdf_file,
+        file_name=f"{row['company']}_executive_report.pdf",
+        mime="application/pdf"
+    )
 
         st.write(summary)
 
