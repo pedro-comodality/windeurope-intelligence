@@ -1,9 +1,9 @@
 
 import streamlit as st
 
-from src.reporting.pdf_report import (
-    generate_executive_pdf
-)
+#from src.reporting.pdf_report import (
+#    generate_executive_pdf
+#)
 
 # =====================================================
 # PAGE CONFIG
@@ -453,21 +453,11 @@ with tab2:
 
         st.write(summary)
 
-        # PDF REPORT
+     # PDF REPORT TEMPORARILY DISABLED
 
-        pdf_path = generate_executive_pdf(
-            row,
-            summary
-        )
-
-        with open(pdf_path, "rb") as pdf_file:
-
-            st.download_button(
-                label="📄 Download Executive PDF",
-                data=pdf_file,
-                file_name=f"{row['company']}_executive_report.pdf",
-                mime="application/pdf"
-            )
+            st.info(
+                "📄 Executive PDF generation coming soon"
+             )
 
         # WEBSITE
 
