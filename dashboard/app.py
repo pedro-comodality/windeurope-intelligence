@@ -1,64 +1,3 @@
-
-import sys
-import os
-
-sys.path.append(
-    os.path.abspath(
-        os.path.join(
-            os.path.dirname(__file__),
-            ".."
-        )
-    )
-)
-
-
-
-import pandas as pd
-import streamlit as st
-import plotly.express as px
-
-from src.profiling.executive_summary import (
-    generate_executive_summary
-)
-
-from src.profiling.relationship_engine import (
-    generate_relationship_analysis
-)
-
-import streamlit.components.v1 as components
-
-from src.visualization.network_graph import (
-    build_network_graph
-)
-
-from src.profiling.recommendation_engine import (
-    top_strategic_companies,
-    top_floating_companies,
-    top_epc_companies,
-    top_digitalization_companies,
-    top_innovators
-)
-
-from src.profiling.chat_analyst import (
-    ask_ai_analyst
-)
-
-
-from src.sales.outreach_generator import (
-    generate_outreach_email
-)
-
-
-from src.crm.crm_engine import (
-    load_crm,
-    save_crm
-)
-
-from src.sales.meeting_prep import (
-    generate_meeting_prep
-)
-
-
 # =====================================================
 # PAGE CONFIG
 # =====================================================
@@ -72,9 +11,21 @@ st.title("🌊 WindEurope 2026 Intelligence Platform")
 
 
 # =====================================================
-# LOAD DATA
+# TABS
 # =====================================================
 
+tab1, tab2, tab3, tab4, tab5 = st.tabs([
+    "📊 Dashboard",
+    "🧠 Intelligence",
+    "🤖 AI Analyst",
+    "📌 CRM",
+    "🌐 Network"
+])
+
+
+# =====================================================
+# LOAD DATA
+# =====================================================
 
 @st.cache_data
 def load_data():
@@ -84,8 +35,8 @@ def load_data():
     )
 
 
-
 df = load_data()
+
 
 # =====================================================
 # SIDEBAR
@@ -174,447 +125,381 @@ if epc_filter:
 
 
 # =====================================================
-# KPIs
+# TAB 1 — DASHBOARD
 # =====================================================
 
-col1, col2, col3, col4, col5 = st.columns(5)
+with tab1:
 
-col1.metric(
-    "Companies",
-    len(df)
-)
+    st.subheader("📊 Executive Dashboard")
 
-col2.metric(
-    "HOT Leads",
-    len(df[df["lead_tier"] == "HOT"])
-)
+    # KPIs
 
-col3.metric(
-    "Strategic",
-    len(df[df["strategic_level"] == "STRATEGIC"])
-)
+    col1, col2, col3, col4, col5 = st.columns(5)
 
-col4.metric(
-    "Offshore",
-    len(df[df["offshore"] == True])
-)
+    col1.metric(
+        "Companies",
+        len(df)
+    )
 
-col5.metric(
-    "Floating",
-    len(df[df["floating_wind"] == True])
-)
+    col2.metric(
+        "HOT Leads",
+        len(df[df["lead_tier"] == "HOT"])
+    )
 
-# =====================================================
-# AI TARGET RECOMMENDATIONS
-# =====================================================
+    col3.metric(
+        "Strategic",
+        len(df[df["strategic_level"] == "STRATEGIC"])
+    )
 
-st.subheader("🎯 AI Target Recommendations")
+    col4.metric(
+        "Offshore",
+        len(df[df["offshore"] == True])
+    )
 
+    col5.metric(
+        "Floating",
+        len(df[df["floating_wind"] == True])
+    )
 
-# TOP STRATEGIC
+    # Country Distribution
 
-st.markdown("## 🏆 Top Strategic Companies")
+    st.subheader("🌍 Country Distribution")
 
-strategic_df = top_strategic_companies(df)
+    country_chart = px.histogram(
+        df,
+        x="country"
+    )
 
-st.dataframe(
-    strategic_df[
-        [
-            "company",
-            "country",
-            "strategic_score",
-            "strategic_level"
-        ]
-    ],
-    use_container_width=True
-)
+    st.plotly_chart(
+        country_chart,
+        use_container_width=True
+    )
 
+    # Lead Score Distribution
 
-# TOP FLOATING
+    st.subheader("📈 Lead Score Distribution")
 
-st.markdown("## 🌊 Top Floating Wind Companies")
+    score_chart = px.histogram(
+        df,
+        x="lead_score"
+    )
 
-floating_df = top_floating_companies(df)
+    st.plotly_chart(
+        score_chart,
+        use_container_width=True
+    )
 
-st.dataframe(
-    floating_df[
-        [
-            "company",
-            "country",
-            "floating_wind",
-            "strategic_score"
-        ]
-    ],
-    use_container_width=True
-)
+    # Strategic Score Distribution
 
+    st.subheader("🧠 Strategic Score Distribution")
 
-# TOP EPC
+    strategic_chart = px.histogram(
+        df,
+        x="strategic_score"
+    )
 
-st.markdown("## 🏗️ Top EPC Companies")
+    st.plotly_chart(
+        strategic_chart,
+        use_container_width=True
+    )
 
-epc_df = top_epc_companies(df)
+    # Export CSV
 
-st.dataframe(
-    epc_df[
-        [
-            "company",
-            "country",
-            "epc",
-            "strategic_score"
-        ]
-    ],
-    use_container_width=True
-)
+    csv = df.to_csv(index=False)
 
-
-# TOP DIGITALIZATION
-
-st.markdown("## 🤖 Top Digitalization Targets")
-
-digital_df = top_digitalization_companies(df)
-
-st.dataframe(
-    digital_df[
-        [
-            "company",
-            "country",
-            "digitalization",
-            "strategic_score"
-        ]
-    ],
-    use_container_width=True
-)
-
-# =====================================================
-# TOP STRATEGIC COMPANIES
-# =====================================================
-
-st.subheader("🏆 Top Strategic Companies")
-
-top_df = df.sort_values(
-    by="strategic_score",
-    ascending=False
-)
-
-st.dataframe(
-    top_df[
-        [
-            "company",
-            "country",
-            "lead_score",
-            "lead_tier",
-            "strategic_score",
-            "strategic_level",
-            "offshore",
-            "floating_wind",
-            "epc"
-        ]
-    ],
-    use_container_width=True
-)
+    st.download_button(
+        label="📥 Download CSV",
+        data=csv,
+        file_name="windeurope_filtered.csv",
+        mime="text/csv"
+    )
 
 
 # =====================================================
-# COUNTRY DISTRIBUTION
+# TAB 2 — INTELLIGENCE
 # =====================================================
 
-st.subheader("🌍 Country Distribution")
+with tab2:
 
-country_chart = px.histogram(
-    df,
-    x="country"
-)
+    st.subheader("🎯 AI Target Recommendations")
 
-st.plotly_chart(
-    country_chart,
-    use_container_width=True
-)
+    # TOP STRATEGIC
 
+    st.markdown("## 🏆 Top Strategic Companies")
 
-# =====================================================
-# LEAD SCORE DISTRIBUTION
-# =====================================================
+    strategic_df = top_strategic_companies(df)
 
-st.subheader("📈 Lead Score Distribution")
+    st.dataframe(
+        strategic_df[
+            [
+                "company",
+                "country",
+                "strategic_score",
+                "strategic_level"
+            ]
+        ],
+        use_container_width=True
+    )
 
-score_chart = px.histogram(
-    df,
-    x="lead_score"
-)
+    # TOP FLOATING
 
-st.plotly_chart(
-    score_chart,
-    use_container_width=True
-)
+    st.markdown("## 🌊 Top Floating Wind Companies")
 
+    floating_df = top_floating_companies(df)
 
-# =====================================================
-# STRATEGIC SCORE DISTRIBUTION
-# =====================================================
+    st.dataframe(
+        floating_df[
+            [
+                "company",
+                "country",
+                "floating_wind",
+                "strategic_score"
+            ]
+        ],
+        use_container_width=True
+    )
 
-st.subheader("🧠 Strategic Score Distribution")
+    # TOP EPC
 
-strategic_chart = px.histogram(
-    df,
-    x="strategic_score"
-)
+    st.markdown("## 🏗️ Top EPC Companies")
 
-st.plotly_chart(
-    strategic_chart,
-    use_container_width=True
-)
+    epc_df = top_epc_companies(df)
 
+    st.dataframe(
+        epc_df[
+            [
+                "company",
+                "country",
+                "epc",
+                "strategic_score"
+            ]
+        ],
+        use_container_width=True
+    )
 
-# =====================================================
-# AI SALES STRATEGY VIEWER
-# =====================================================
+    # TOP DIGITALIZATION
 
-st.subheader("🤖 AI Sales Strategy Viewer")
+    st.markdown("## 🤖 Top Digitalization Targets")
 
-company_selected = st.selectbox(
-    "Select company",
-    df["company"]
-)
+    digital_df = top_digitalization_companies(df)
 
-selected_df = df[
-    df["company"] == company_selected
-]
+    st.dataframe(
+        digital_df[
+            [
+                "company",
+                "country",
+                "digitalization",
+                "strategic_score"
+            ]
+        ],
+        use_container_width=True
+    )
 
-if len(selected_df) > 0:
+    # COMPANY SELECTOR
 
-    row = selected_df.iloc[0]
+    st.subheader("🤖 AI Sales Strategy Viewer")
 
-    # =====================================================
-    # COMPANY PROFILE
-    # =====================================================
+    company_selected = st.selectbox(
+        "Select company",
+        df["company"]
+    )
 
-    st.subheader("🧠 Company Intelligence Profile")
+    selected_df = df[
+        df["company"] == company_selected
+    ]
 
-    col1, col2 = st.columns(2)
+    if len(selected_df) > 0:
 
-    with col1:
+        row = selected_df.iloc[0]
 
-        st.markdown("### Company")
+        # PROFILE
 
-        st.write(row["company"])
+        st.subheader("🧠 Company Intelligence Profile")
 
-        st.markdown("### Country")
+        col1, col2 = st.columns(2)
 
-        st.write(row["country"])
+        with col1:
 
-        st.markdown("### Segment")
+            st.markdown("### Company")
+            st.write(row["company"])
 
-        st.write(row.get("segmento", ""))
+            st.markdown("### Country")
+            st.write(row["country"])
 
-        st.markdown("### Company Type")
+            st.markdown("### Segment")
+            st.write(row.get("segmento", ""))
 
-        st.write(row.get("tipo_empresa", ""))
+            st.markdown("### Strategic Level")
+            st.write(row["strategic_level"])
 
-        st.markdown("### Strategic Level")
+            st.markdown("### Lead Tier")
+            st.write(row["lead_tier"])
 
-        st.write(row["strategic_level"])
+        with col2:
 
-        st.markdown("### Lead Tier")
+            st.metric(
+                "Lead Score",
+                row["lead_score"]
+            )
 
-        st.write(row["lead_tier"])
+            st.metric(
+                "Strategic Score",
+                row["strategic_score"]
+            )
 
-    with col2:
+            st.write(f"🌊 Offshore: {row['offshore']}")
+            st.write(f"⚓ Floating Wind: {row['floating_wind']}")
+            st.write(f"🏗 EPC: {row['epc']}")
 
-        st.markdown("### Scores")
+        # EXECUTIVE SUMMARY
 
-        st.metric(
-            "Lead Score",
-            row["lead_score"]
+        st.subheader("📋 Executive Summary")
+
+        summary = generate_executive_summary(row)
+
+        st.write(summary)
+
+        # WEBSITE INTELLIGENCE
+
+        st.subheader("🌐 Website Intelligence")
+
+        st.write(
+            row.get("website_text", "")
         )
 
-        st.metric(
-            "Strategic Score",
-            row["strategic_score"]
+        # SALES STRATEGY
+
+        st.subheader("🤖 AI Sales Strategy")
+
+        st.write(
+            row["sales_strategy"]
         )
 
-        st.markdown("### Offshore")
+        # RELATIONSHIP ANALYSIS
 
-        st.write(row["offshore"])
+        st.subheader("🔗 Relationship Intelligence")
 
-        st.markdown("### Floating Wind")
-
-        st.write(row["floating_wind"])
-
-        st.markdown("### EPC")
-
-        st.write(row["epc"])
-
-    # =====================================================
-    # EXECUTIVE SUMMARY
-    # =====================================================
-
-    st.subheader("📋 Executive Summary")
-
-    summary = generate_executive_summary(row)
-
-    st.write(summary)
-
-    # =====================================================
-    # WEBSITE INTELLIGENCE
-    # =====================================================
-
-    st.subheader("🌐 Website Intelligence")
-
-    st.write(
-        row.get("website_text", "")
-    )
-
-    # =====================================================
-    # AI SALES STRATEGY
-    # =====================================================
-
-    st.subheader("🤖 AI Sales Strategy")
-
-    st.write(
-        row["sales_strategy"]
-    )
-
-    # =====================================================
-    # RELATIONSHIP INTELLIGENCE
-    # =====================================================
-
-    st.subheader("🔗 Relationship Intelligence")
-
-    relationship_analysis = generate_relationship_analysis(
-        row["company"],
-        df
-    )
-
-    st.write(
-        relationship_analysis
-    )
-
-
-# =====================================================
-# AI CHAT ANALYST
-# =====================================================
-
-st.subheader("🧠 AI Market Intelligence Analyst")
-
-question = st.text_input(
-    "Ask the AI analyst"
-)
-
-if question:
-
-    with st.spinner("Analyzing market intelligence..."):
-
-        answer = ask_ai_analyst(
-            question,
+        relationship_analysis = generate_relationship_analysis(
+            row["company"],
             df
         )
 
-        st.write(answer)
-
-
-# =====================================================
-# AI OUTREACH GENERATOR
-# =====================================================
-
-st.subheader("📧 AI Outreach Generator")
-
-if st.button("Generate Outreach Email"):
-
-    with st.spinner("Generating outreach strategy..."):
-
-        outreach_email = generate_outreach_email(
-            row
+        st.write(
+            relationship_analysis
         )
 
-        st.write(outreach_email)
-
 
 # =====================================================
-# CRM PANEL
+# TAB 3 — AI ANALYST
 # =====================================================
 
-st.subheader("📌 CRM Management")
+with tab3:
 
-crm_status = st.selectbox(
-    "Lead Status",
-    [
-        "Prospect",
-        "Contacted",
-        "Meeting",
-        "Proposal",
-        "Partner",
-        "Rejected"
-    ]
-)
+    st.subheader("🧠 AI Market Intelligence Analyst")
 
-crm_notes = st.text_area(
-    "Commercial Notes"
-)
-
-if st.button("Save CRM"):
-
-    save_crm(
-        row["company"],
-        crm_status,
-        crm_notes
+    question = st.text_input(
+        "Ask the AI analyst"
     )
 
-    st.success("CRM updated")
+    if question:
+
+        with st.spinner("Analyzing market intelligence..."):
+
+            answer = ask_ai_analyst(
+                question,
+                df
+            )
+
+            st.write(answer)
+
+    # OUTREACH
+
+    st.subheader("📧 AI Outreach Generator")
+
+    if st.button("Generate Outreach Email"):
+
+        with st.spinner("Generating outreach strategy..."):
+
+            outreach_email = generate_outreach_email(
+                row
+            )
+
+            st.write(outreach_email)
+
+    # MEETING PREP
+
+    st.subheader("🧠 AI Meeting Preparation")
+
+    if st.button("Generate Meeting Briefing"):
+
+        with st.spinner("Preparing strategic briefing..."):
+
+            meeting_prep = generate_meeting_prep(
+                row
+            )
+
+            st.write(meeting_prep)
 
 
 # =====================================================
-# AI MEETING PREP
+# TAB 4 — CRM
 # =====================================================
 
-st.subheader("🧠 AI Meeting Preparation")
+with tab4:
 
-if st.button("Generate Meeting Briefing"):
+    st.subheader("📌 CRM Management")
 
-    with st.spinner("Preparing strategic briefing..."):
+    crm_status = st.selectbox(
+        "Lead Status",
+        [
+            "Prospect",
+            "Contacted",
+            "Meeting",
+            "Proposal",
+            "Partner",
+            "Rejected"
+        ]
+    )
 
-        meeting_prep = generate_meeting_prep(
-            row
+    crm_notes = st.text_area(
+        "Commercial Notes"
+    )
+
+    if st.button("Save CRM"):
+
+        save_crm(
+            row["company"],
+            crm_status,
+            crm_notes
         )
 
-        st.write(meeting_prep)
+        st.success("CRM updated")
 
 
 # =====================================================
-# EXPORT CSV
+# TAB 5 — NETWORK
 # =====================================================
 
-csv = df.to_csv(index=False)
+with tab5:
 
-st.download_button(
-    label="📥 Download CSV",
-    data=csv,
-    file_name="windeurope_filtered.csv",
-    mime="text/csv"
-)
+    st.subheader("🌐 Offshore Ecosystem Network")
 
-# =====================================================
-# NETWORK GRAPH
-# =====================================================
+    if st.button("Generate Network Graph"):
 
-st.subheader("🌐 Offshore Ecosystem Network")
+        with st.spinner("Building ecosystem graph..."):
 
-if st.button("Generate Network Graph"):
+            graph_path = build_network_graph(df)
 
-    with st.spinner("Building ecosystem graph..."):
+            with open(
+                graph_path,
+                "r",
+                encoding="utf-8"
+            ) as f:
 
-        graph_path = build_network_graph(df)
+                html_data = f.read()
 
-        with open(
-            graph_path,
-            "r",
-            encoding="utf-8"
-        ) as f:
-
-            html_data = f.read()
-
-        components.html(
-            html_data,
-            height=900,
-            scrolling=True
-        )
+            components.html(
+                html_data,
+                height=900,
+                scrolling=True
+            )
