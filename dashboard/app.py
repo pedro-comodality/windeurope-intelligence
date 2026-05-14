@@ -457,7 +457,7 @@ with tab2:
 
             st.info(
                 "📄 Executive PDF generation coming soon"
-             )
+            )
 
         # WEBSITE
 
