@@ -453,11 +453,11 @@ with tab2:
 
         st.write(summary)
 
-     # PDF REPORT TEMPORARILY DISABLED
+        # PDF REPORT TEMPORARILY DISABLED
 
-            st.info(
-                "📄 Executive PDF generation coming soon"
-            )
+        st.info(
+            "📄 Executive PDF generation coming soon"
+        )
 
         # WEBSITE
 
