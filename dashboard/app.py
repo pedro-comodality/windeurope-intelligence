@@ -418,16 +418,16 @@ with tab2:
             st.markdown("### Strategic Level")
             st.write(row["strategic_level"])
 
-            st.markdown("### Lead Tier")
+           st.markdown("### Lead Tier")
 
-            if row["lead_tier"] == "HOT":
-            st.error("🔥 HOT LEAD")
+if row["lead_tier"] == "HOT":
+    st.error("🔥 HOT LEAD")
 
-            elif row["lead_tier"] == "WARM":
-            st.warning("🟠 WARM LEAD")
+elif row["lead_tier"] == "WARM":
+    st.warning("🟠 WARM LEAD")
 
-            else:
-            st.success("🟢 COLD LEAD")
+else:
+    st.success("🟢 COLD LEAD")
 
             with col2:
 
