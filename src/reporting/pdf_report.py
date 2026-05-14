@@ -5,56 +5,50 @@ from reportlab.platypus import (
 )
 
 from reportlab.lib.styles import getSampleStyleSheet
-from reportlab.lib.pagesizes import letter
+
+import os
 
 
 def generate_executive_pdf(row, summary):
 
-    output_path = f"{row['company']}_report.pdf"
+    company_name = row["company"]
 
-    doc = SimpleDocTemplate(
-        output_path,
-        pagesize=letter
-    )
+    output_path = f"/tmp/{company_name}_report.pdf"
+
+    doc = SimpleDocTemplate(output_path)
 
     styles = getSampleStyleSheet()
 
-    elements = []
+    story = []
 
-    title = "WindEurope Executive Intelligence Report"
-
-    elements.append(
-        Paragraph(title, styles['Title'])
+    title = Paragraph(
+        f"<b>Executive Intelligence Report</b><br/>{company_name}",
+        styles["Title"]
     )
 
-    elements.append(
-        Spacer(1, 20)
-    )
+    story.append(title)
 
-    company_info = f"""
-    <b>Company:</b> {row['company']}<br/>
-    <b>Country:</b> {row['country']}<br/>
-    <b>Strategic Level:</b> {row['strategic_level']}<br/>
-    <b>Lead Tier:</b> {row['lead_tier']}<br/>
+    story.append(Spacer(1, 20))
+
+    content = f"""
+    <b>Country:</b> {row['country']}<br/><br/>
+
+    <b>Lead Tier:</b> {row['lead_tier']}<br/><br/>
+
+    <b>Strategic Level:</b> {row['strategic_level']}<br/><br/>
+
+    <b>Strategic Score:</b> {row['strategic_score']}<br/><br/>
+
+    <b>Executive Summary:</b><br/>{summary}
     """
 
-    elements.append(
-        Paragraph(company_info, styles['BodyText'])
+    paragraph = Paragraph(
+        content,
+        styles["BodyText"]
     )
 
-    elements.append(
-        Spacer(1, 20)
-    )
+    story.append(paragraph)
 
-    executive_summary = f"""
-    <b>Executive Summary</b><br/><br/>
-    {summary}
-    """
-
-    elements.append(
-        Paragraph(executive_summary, styles['BodyText'])
-    )
-
-    doc.build(elements)
+    doc.build(story)
 
     return output_path
