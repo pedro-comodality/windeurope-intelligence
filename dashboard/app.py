@@ -125,10 +125,11 @@ st.caption(
 def load_data():
 
     return pd.read_excel(
-        "data/exports/windeurope_ai_sales.xlsx"
+        "data/exports/windeurope_ai_v3.xlsx"
     )
 
 df = load_data()
+st.write("TOTAL COMPANIES:", len(df))
 
 # =====================================================
 # SIDEBAR
