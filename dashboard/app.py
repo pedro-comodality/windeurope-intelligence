@@ -418,18 +418,18 @@ with tab2:
             st.markdown("### Strategic Level")
             st.write(row["strategic_level"])
 
-           st.markdown("### Lead Tier")
+            st.markdown("### Lead Tier")
 
-if row["lead_tier"] == "HOT":
-    st.error("🔥 HOT LEAD")
+            if row["lead_tier"] == "HOT":
+                st.error("🔥 HOT LEAD")
 
-elif row["lead_tier"] == "WARM":
-    st.warning("🟠 WARM LEAD")
+            elif row["lead_tier"] == "WARM":
+                st.warning("🟠 WARM LEAD")
 
-else:
-    st.success("🟢 COLD LEAD")
+            else:
+                st.success("🟢 COLD LEAD")
 
-            with col2:
+        with col2:
 
             st.metric(
                 "Lead Score",
@@ -451,21 +451,23 @@ else:
 
         summary = generate_executive_summary(row)
 
-pdf_path = generate_executive_pdf(
-    row,
-    summary
-)
-
-with open(pdf_path, "rb") as pdf_file:
-
-    st.download_button(
-        label="📄 Download Executive PDF",
-        data=pdf_file,
-        file_name=f"{row['company']}_executive_report.pdf",
-        mime="application/pdf"
-    )
-
         st.write(summary)
+
+        # PDF REPORT
+
+        pdf_path = generate_executive_pdf(
+            row,
+            summary
+        )
+
+        with open(pdf_path, "rb") as pdf_file:
+
+            st.download_button(
+                label="📄 Download Executive PDF",
+                data=pdf_file,
+                file_name=f"{row['company']}_executive_report.pdf",
+                mime="application/pdf"
+            )
 
         # WEBSITE
 
