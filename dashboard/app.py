@@ -1,3 +1,6 @@
+```python
+import streamlit as st
+
 # =====================================================
 # PAGE CONFIG
 # =====================================================
@@ -7,21 +10,104 @@ st.set_page_config(
     layout="wide"
 )
 
+# =====================================================
+# IMPORTS
+# =====================================================
+
+import sys
+import os
+
+sys.path.append(
+    os.path.abspath(
+        os.path.join(
+            os.path.dirname(__file__),
+            ".."
+        )
+    )
+)
+
+import pandas as pd
+import plotly.express as px
+import streamlit.components.v1 as components
+
+from src.profiling.executive_summary import (
+    generate_executive_summary
+)
+
+from src.profiling.relationship_engine import (
+    generate_relationship_analysis
+)
+
+from src.visualization.network_graph import (
+    build_network_graph
+)
+
+from src.profiling.recommendation_engine import (
+    top_strategic_companies,
+    top_floating_companies,
+    top_epc_companies,
+    top_digitalization_companies,
+    top_innovators
+)
+
+from src.profiling.chat_analyst import (
+    ask_ai_analyst
+)
+
+from src.sales.outreach_generator import (
+    generate_outreach_email
+)
+
+from src.crm.crm_engine import (
+    load_crm,
+    save_crm
+)
+
+from src.sales.meeting_prep import (
+    generate_meeting_prep
+)
+
+# =====================================================
+# STYLING
+# =====================================================
+
+st.markdown("""
+<style>
+
+.main {
+    background-color: #07111f;
+    color: white;
+}
+
+h1, h2, h3 {
+    color: white;
+}
+
+[data-testid="metric-container"] {
+    background-color: #111c2d;
+    border: 1px solid #1e2d45;
+    padding: 15px;
+    border-radius: 12px;
+}
+
+.stTabs [data-baseweb="tab-list"] {
+    gap: 20px;
+}
+
+.stTabs [data-baseweb="tab"] {
+    background-color: #111c2d;
+    border-radius: 10px;
+    padding: 10px 20px;
+}
+
+</style>
+""", unsafe_allow_html=True)
+
+# =====================================================
+# TITLE
+# =====================================================
+
 st.title("🌊 WindEurope 2026 Intelligence Platform")
-
-
-# =====================================================
-# TABS
-# =====================================================
-
-tab1, tab2, tab3, tab4, tab5 = st.tabs([
-    "📊 Dashboard",
-    "🧠 Intelligence",
-    "🤖 AI Analyst",
-    "📌 CRM",
-    "🌐 Network"
-])
-
 
 # =====================================================
 # LOAD DATA
@@ -34,9 +120,7 @@ def load_data():
         "data/exports/windeurope_ai_sales.xlsx"
     )
 
-
 df = load_data()
-
 
 # =====================================================
 # SIDEBAR
@@ -44,10 +128,7 @@ df = load_data()
 
 st.sidebar.header("🎯 Filters")
 
-
-# =====================================================
 # SEARCH
-# =====================================================
 
 search = st.sidebar.text_input(
     "Search company"
@@ -63,10 +144,7 @@ if search:
         )
     ]
 
-
-# =====================================================
 # LEAD TIER
-# =====================================================
 
 tier_filter = st.sidebar.multiselect(
     "Lead Tier",
@@ -78,10 +156,7 @@ df = df[
     df["lead_tier"].isin(tier_filter)
 ]
 
-
-# =====================================================
 # STRATEGIC LEVEL
-# =====================================================
 
 strategic_filter = st.sidebar.multiselect(
     "Strategic Level",
@@ -95,10 +170,7 @@ df = df[
     )
 ]
 
-
-# =====================================================
 # CHECKBOXES
-# =====================================================
 
 offshore_filter = st.sidebar.checkbox(
     "Offshore only"
@@ -107,14 +179,12 @@ offshore_filter = st.sidebar.checkbox(
 if offshore_filter:
     df = df[df["offshore"] == True]
 
-
 floating_filter = st.sidebar.checkbox(
     "Floating Wind only"
 )
 
 if floating_filter:
     df = df[df["floating_wind"] == True]
-
 
 epc_filter = st.sidebar.checkbox(
     "EPC only"
@@ -123,6 +193,17 @@ epc_filter = st.sidebar.checkbox(
 if epc_filter:
     df = df[df["epc"] == True]
 
+# =====================================================
+# TABS
+# =====================================================
+
+tab1, tab2, tab3, tab4, tab5 = st.tabs([
+    "📊 Dashboard",
+    "🧠 Intelligence",
+    "🤖 AI Analyst",
+    "📌 CRM",
+    "🌐 Network"
+])
 
 # =====================================================
 # TAB 1 — DASHBOARD
@@ -131,8 +212,6 @@ if epc_filter:
 with tab1:
 
     st.subheader("📊 Executive Dashboard")
-
-    # KPIs
 
     col1, col2, col3, col4, col5 = st.columns(5)
 
@@ -161,7 +240,7 @@ with tab1:
         len(df[df["floating_wind"] == True])
     )
 
-    # Country Distribution
+    # COUNTRY CHART
 
     st.subheader("🌍 Country Distribution")
 
@@ -175,7 +254,7 @@ with tab1:
         use_container_width=True
     )
 
-    # Lead Score Distribution
+    # LEAD SCORE
 
     st.subheader("📈 Lead Score Distribution")
 
@@ -189,7 +268,7 @@ with tab1:
         use_container_width=True
     )
 
-    # Strategic Score Distribution
+    # STRATEGIC SCORE
 
     st.subheader("🧠 Strategic Score Distribution")
 
@@ -203,7 +282,7 @@ with tab1:
         use_container_width=True
     )
 
-    # Export CSV
+    # EXPORT
 
     csv = df.to_csv(index=False)
 
@@ -214,7 +293,6 @@ with tab1:
         mime="text/csv"
     )
 
-
 # =====================================================
 # TAB 2 — INTELLIGENCE
 # =====================================================
@@ -223,7 +301,7 @@ with tab2:
 
     st.subheader("🎯 AI Target Recommendations")
 
-    # TOP STRATEGIC
+    # STRATEGIC
 
     st.markdown("## 🏆 Top Strategic Companies")
 
@@ -241,7 +319,7 @@ with tab2:
         use_container_width=True
     )
 
-    # TOP FLOATING
+    # FLOATING
 
     st.markdown("## 🌊 Top Floating Wind Companies")
 
@@ -259,7 +337,7 @@ with tab2:
         use_container_width=True
     )
 
-    # TOP EPC
+    # EPC
 
     st.markdown("## 🏗️ Top EPC Companies")
 
@@ -277,7 +355,7 @@ with tab2:
         use_container_width=True
     )
 
-    # TOP DIGITALIZATION
+    # DIGITALIZATION
 
     st.markdown("## 🤖 Top Digitalization Targets")
 
@@ -359,7 +437,7 @@ with tab2:
 
         st.write(summary)
 
-        # WEBSITE INTELLIGENCE
+        # WEBSITE
 
         st.subheader("🌐 Website Intelligence")
 
@@ -388,7 +466,6 @@ with tab2:
             relationship_analysis
         )
 
-
 # =====================================================
 # TAB 3 — AI ANALYST
 # =====================================================
@@ -416,30 +493,33 @@ with tab3:
 
     st.subheader("📧 AI Outreach Generator")
 
-    if st.button("Generate Outreach Email"):
+    if "row" in locals():
 
-        with st.spinner("Generating outreach strategy..."):
+        if st.button("Generate Outreach Email"):
 
-            outreach_email = generate_outreach_email(
-                row
-            )
+            with st.spinner("Generating outreach strategy..."):
 
-            st.write(outreach_email)
+                outreach_email = generate_outreach_email(
+                    row
+                )
+
+                st.write(outreach_email)
 
     # MEETING PREP
 
     st.subheader("🧠 AI Meeting Preparation")
 
-    if st.button("Generate Meeting Briefing"):
+    if "row" in locals():
 
-        with st.spinner("Preparing strategic briefing..."):
+        if st.button("Generate Meeting Briefing"):
 
-            meeting_prep = generate_meeting_prep(
-                row
-            )
+            with st.spinner("Preparing strategic briefing..."):
 
-            st.write(meeting_prep)
+                meeting_prep = generate_meeting_prep(
+                    row
+                )
 
+                st.write(meeting_prep)
 
 # =====================================================
 # TAB 4 — CRM
@@ -449,32 +529,33 @@ with tab4:
 
     st.subheader("📌 CRM Management")
 
-    crm_status = st.selectbox(
-        "Lead Status",
-        [
-            "Prospect",
-            "Contacted",
-            "Meeting",
-            "Proposal",
-            "Partner",
-            "Rejected"
-        ]
-    )
+    if "row" in locals():
 
-    crm_notes = st.text_area(
-        "Commercial Notes"
-    )
-
-    if st.button("Save CRM"):
-
-        save_crm(
-            row["company"],
-            crm_status,
-            crm_notes
+        crm_status = st.selectbox(
+            "Lead Status",
+            [
+                "Prospect",
+                "Contacted",
+                "Meeting",
+                "Proposal",
+                "Partner",
+                "Rejected"
+            ]
         )
 
-        st.success("CRM updated")
+        crm_notes = st.text_area(
+            "Commercial Notes"
+        )
 
+        if st.button("Save CRM"):
+
+            save_crm(
+                row["company"],
+                crm_status,
+                crm_notes
+            )
+
+            st.success("CRM updated")
 
 # =====================================================
 # TAB 5 — NETWORK
@@ -503,3 +584,4 @@ with tab5:
                 height=900,
                 scrolling=True
             )
+```
