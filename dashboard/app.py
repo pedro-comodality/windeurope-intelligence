@@ -521,4 +521,3 @@ with tab6:
 
         use_container_width=True
     )
-```
