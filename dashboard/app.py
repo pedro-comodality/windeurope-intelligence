@@ -8,7 +8,11 @@ import streamlit.components.v1 as components
 import streamlit_authenticator as stauth
 
 from yaml.loader import SafeLoader
-
+from src.intelligence.deal_engine import (
+    top_acquisition_targets,
+    top_partnership_targets,
+    hidden_champions
+)
 # =====================================================
 # PATH FIX
 # =====================================================
@@ -214,12 +218,13 @@ if "country" in df.columns:
 # TABS
 # =====================================================
 
-tab1, tab2, tab3, tab4, tab5 = st.tabs([
+tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
     "📊 Dashboard",
     "🧠 Intelligence",
     "🤖 AI Analyst",
     "📌 CRM",
     "🌐 Network"
+    "🧠 Deal Intelligence"
 ])
 
 # =====================================================
@@ -434,3 +439,86 @@ with tab5:
             height=900,
             scrolling=True
         )
+        ```python id="y1odqr"
+# =====================================================
+# TAB 6 — DEAL INTELLIGENCE
+# =====================================================
+
+with tab6:
+
+    st.subheader(
+        "🧠 AI Deal Intelligence Engine"
+    )
+
+    # =================================================
+    # ACQUISITION TARGETS
+    # =================================================
+
+    st.markdown(
+        "## 🏢 Top Acquisition Targets"
+    )
+
+    acquisition_df = top_acquisition_targets(df)
+
+    st.dataframe(
+
+        acquisition_df[
+            [
+                "company",
+                "country",
+                "deal_score",
+                "final_strategic_score"
+            ]
+        ],
+
+        use_container_width=True
+    )
+
+    # =================================================
+    # PARTNERSHIP TARGETS
+    # =================================================
+
+    st.markdown(
+        "## 🤝 Strategic Partnership Targets"
+    )
+
+    partnership_df = top_partnership_targets(df)
+
+    st.dataframe(
+
+        partnership_df[
+            [
+                "company",
+                "country",
+                "partnership_rank",
+                "partnership_score"
+            ]
+        ],
+
+        use_container_width=True
+    )
+
+    # =================================================
+    # HIDDEN CHAMPIONS
+    # =================================================
+
+    st.markdown(
+        "## 🚀 Hidden Champions"
+    )
+
+    hidden_df = hidden_champions(df)
+
+    st.dataframe(
+
+        hidden_df[
+            [
+                "company",
+                "country",
+                "final_strategic_score",
+                "strategic_category_v2"
+            ]
+        ],
+
+        use_container_width=True
+    )
+```
