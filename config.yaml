@@ -1,0 +1,21 @@
+credentials:
+  usernames:
+
+    pedro:
+      email: pedro@windeurope.ai
+      name: Pedro
+      password: admin123
+
+    demo:
+      email: demo@windeurope.ai
+      name: Demo User
+      password: demo123
+
+cookie:
+  expiry_days: 30
+  key: windeurope_cookie
+  name: windeurope_login
+
+preauthorized:
+  emails:
+    - pedro@windeurope.ai

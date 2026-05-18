@@ -1,3 +1,6 @@
+import yaml
+import streamlit_authenticator as stauth
+from yaml.loader import SafeLoader
 import streamlit as st
 import sys
 import os
@@ -75,7 +78,46 @@ st.set_page_config(
     page_title="WindEurope Intelligence",
     layout="wide"
 )
+# =====================================================
+# AUTHENTICATION
+# =====================================================
 
+with open("config.yaml") as file:
+
+    config = yaml.load(
+        file,
+        Loader=SafeLoader
+    )
+
+authenticator = stauth.Authenticate(
+    config["credentials"],
+    config["cookie"]["name"],
+    config["cookie"]["key"],
+    config["cookie"]["expiry_days"]
+)
+
+authenticator.login()
+
+if st.session_state["authentication_status"]:
+
+    st.sidebar.success(
+        f"Welcome {st.session_state['name']}"
+    )
+
+    authenticator.logout(
+        "Logout",
+        "sidebar"
+    )
+
+elif st.session_state["authentication_status"] is False:
+
+    st.error("Username/password incorrect")
+    st.stop()
+
+elif st.session_state["authentication_status"] is None:
+
+    st.warning("Please login")
+    st.stop()
 # =====================================================
 # STYLING
 # =====================================================
