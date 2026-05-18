@@ -2,98 +2,117 @@ import pandas as pd
 
 
 # =====================================================
-# ADVANCED STRATEGIC SCORING ENGINE
+# SAFE COLUMN
+# =====================================================
+
+def safe_col(df, col, default=0):
+
+    if col in df.columns:
+        return df[col].fillna(default)
+
+    return pd.Series(
+        [default] * len(df)
+    )
+
+
+# =====================================================
+# ADVANCED SCORING
 # =====================================================
 
 def calculate_advanced_scores(df):
 
     # =================================================
-    # OFFSHORE SCORE
+    # OFFSHORE
     # =================================================
 
     df["offshore_score"] = (
-        df["potencial_offshore"].fillna(0) * 20
+        safe_col(df, "potencial_offshore") * 20
     )
 
     # =================================================
-    # FLOATING SCORE
+    # FLOATING
     # =================================================
 
     df["floating_score"] = (
-        df["potencial_floating"].fillna(0) * 20
+        safe_col(df, "potencial_floating") * 20
     )
 
     # =================================================
-    # EPC SCORE
+    # EPC
     # =================================================
 
     df["epc_score"] = (
-        df["potencial_epc"].fillna(0) * 20
+        safe_col(df, "potencial_epc") * 20
     )
 
     # =================================================
-    # INNOVATION SCORE
+    # INNOVATION
     # =================================================
 
     df["innovation_score_v2"] = (
-        df["innovacion"].fillna(0) * 20
+        safe_col(df, "innovacion") * 20
     )
 
     # =================================================
-    # DIGITALIZATION SCORE
+    # DIGITALIZATION
     # =================================================
 
     df["digital_score"] = (
-        df["digitalizacion"].fillna(0) * 20
+        safe_col(df, "digitalizacion") * 20
     )
 
     # =================================================
-    # ECOSYSTEM SCORE
+    # ECOSYSTEM
     # =================================================
 
-    ecosystem_base = (
+    df["ecosystem_score"] = (
+
         df["offshore_score"]
+
         + df["floating_score"]
+
         + df["epc_score"]
+
     ) / 3
 
-    df["ecosystem_score"] = ecosystem_base
-
     # =================================================
-    # PARTNERSHIP SCORE
+    # PARTNERSHIP
     # =================================================
 
     df["partnership_score"] = (
-        (
-            df["innovation_score_v2"]
-            + df["digital_score"]
-            + df["ecosystem_score"]
-        ) / 3
-    )
+
+        df["innovation_score_v2"]
+
+        + df["digital_score"]
+
+        + df["ecosystem_score"]
+
+    ) / 3
 
     # =================================================
-    # ACQUISITION SCORE
+    # ACQUISITION
     # =================================================
 
     df["acquisition_score"] = (
+
         (
-            df["growth"].fillna(0) * 20
-            + df["innovation_score_v2"]
-        ) / 2
-    )
+            safe_col(df, "crecimiento") * 20
+        )
+
+        + df["innovation_score_v2"]
+
+    ) / 2
 
     # =================================================
-    # INFLUENCE SCORE
+    # INFLUENCE
     # =================================================
 
     df["influence_score"] = (
-        (
-            df["market_presence"].fillna(3) * 20
-        )
+        safe_col(df, "market_presence", 3) * 20
     )
 
     # =================================================
-    # FINAL STRATEGIC SCORE
+    # FINAL SCORE
     # =================================================
 
     df["final_strategic_score"] = (
@@ -115,13 +134,19 @@ def calculate_advanced_scores(df):
     )
 
     df["final_strategic_score"] = (
+
         df["final_strategic_score"]
+
+        .fillna(0)
+
         .round(0)
+
         .astype(int)
+
     )
 
     # =================================================
-    # STRATEGIC CATEGORY
+    # CATEGORY
     # =================================================
 
     def categorize(score):
