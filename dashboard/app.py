@@ -204,36 +204,6 @@ if "country" in df.columns:
 search = st.sidebar.text_input(
     "Search company"
 )
-# =====================================================
-# COUNTRY FILTER
-# =====================================================
-
-country_values = sorted(
-    df["country"]
-    .dropna()
-    .astype(str)
-    .unique()
-)
-
-selected_countries = st.sidebar.multiselect(
-    "🌍 Countries",
-    options=country_values,
-    default=country_values
-)
-
-df = df[
-    df["country"]
-    .isin(selected_countries)
-]
-if search:
-
-    df = df[
-        df["company"].astype(str).str.contains(
-            search,
-            case=False,
-            na=False
-        )
-    ]
 
 # =====================================================
 # LEAD TIER
@@ -334,17 +304,20 @@ tab1, tab2, tab3, tab4, tab5 = st.tabs([
 with tab1:
 
     st.subheader("📊 Executive Dashboard")
-# =====================================================
-# COUNTRY OVERVIEW
-# =====================================================
 
-selected_country_count = (
-    len(selected_countries)
-)
+    # =================================================
+    # COUNTRY OVERVIEW
+    # =================================================
 
-st.info(
-    f"🌍 Active Countries: {selected_country_count}"
-)
+    selected_country_count = len(selected_countries)
+
+    st.info(
+        f"🌍 Active Countries: {selected_country_count}"
+    )
+
+    # =================================================
+    # KPI METRICS
+    # =================================================
 
     col1, col2, col3, col4, col5 = st.columns(5)
 
@@ -379,41 +352,43 @@ st.info(
     )
 
     # =================================================
-    # COUNTRY DISTRIBUTION
+    # TOP COUNTRIES
     # =================================================
-# =====================================================
-# TOP COUNTRIES
-# =====================================================
 
-st.subheader("🏆 Top Countries by Strategic Score")
+    st.subheader("🏆 Top Countries by Strategic Score")
 
-country_scores = (
+    country_scores = (
 
-    df.groupby("country")[
-        "final_strategic_score"
-    ]
+        df.groupby("country")[
+            "final_strategic_score"
+        ]
 
-    .mean()
+        .mean()
 
-    .reset_index()
+        .reset_index()
 
-    .sort_values(
-        "final_strategic_score",
-        ascending=False
+        .sort_values(
+            "final_strategic_score",
+            ascending=False
+        )
+
     )
 
-)
+    country_score_chart = px.bar(
+        country_scores,
+        x="country",
+        y="final_strategic_score"
+    )
 
-country_score_chart = px.bar(
-    country_scores,
-    x="country",
-    y="final_strategic_score"
-)
+    st.plotly_chart(
+        country_score_chart,
+        use_container_width=True
+    )
 
-st.plotly_chart(
-    country_score_chart,
-    use_container_width=True
-)
+    # =================================================
+    # COUNTRY DISTRIBUTION
+    # =================================================
+
     st.subheader("🌍 Country Distribution")
 
     country_chart = px.histogram(
@@ -486,38 +461,38 @@ st.plotly_chart(
         use_container_width=True
     )
 
-# =====================================================
-# COUNTRY LEADERS
-# =====================================================
+    # =================================================
+    # COUNTRY LEADERS
+    # =================================================
 
-st.subheader("🌍 Country Strategic Leaders")
+    st.subheader("🌍 Country Strategic Leaders")
 
-country_leaders = (
+    country_leaders = (
 
-    df.sort_values(
-        "final_strategic_score",
-        ascending=False
+        df.sort_values(
+            "final_strategic_score",
+            ascending=False
+        )
+
+        .groupby("country")
+
+        .head(3)
+
     )
 
-    .groupby("country")
+    st.dataframe(
 
-    .head(3)
+        country_leaders[
+            [
+                "country",
+                "company",
+                "final_strategic_score",
+                "strategic_category_v2"
+            ]
+        ],
 
-)
-
-st.dataframe(
-
-    country_leaders[
-        [
-            "country",
-            "company",
-            "final_strategic_score",
-            "strategic_category_v2"
-        ]
-    ],
-
-    use_container_width=True
-)
+        use_container_width=True
+    )
 
 
 # =====================================================
