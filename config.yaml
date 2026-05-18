@@ -1,21 +1,15 @@
 credentials:
   usernames:
-
-    pedro:
-      email: pedro@windeurope.ai
+    admin:
+      email: admin@windeurope.com
       name: Pedro
-      password: "$2b$12$KIXQ4Qj0J8t6VnVw6K0fUeN2M7xW0lKk4l1FQ2A8g3m1K5lJmY9mS"
-
-    demo:
-      email: demo@windeurope.ai
-      name: Demo User
-      password: "$2b$12$M7sYJ2Qm1K5lJmY9mS4Qj0J8t6VnVw6K0fUeN2M7xW0lKk4l1FQ2A8"
+      password: "$2b$12$1K8QmSx9L8bQw4QkQxY6Qe8G5L6l0n5s0l4v0h2r6n6fP8lAq"
 
 cookie:
   expiry_days: 30
-  key: windeurope_cookie
-  name: windeurope_login
+  key: some_signature_key
+  name: windeurope_cookie
 
 preauthorized:
   emails:
-    - pedro@windeurope.ai
+    - admin@windeurope.com
