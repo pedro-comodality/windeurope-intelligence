@@ -3,11 +3,11 @@ credentials:
     admin:
       email: admin@windeurope.com
       name: Pedro
-      password: "$2b$12$1K8QmSx9L8bQw4QkQxY6Qe8G5L6l0n5s0l4v0h2r6n6fP8lAq"
+      password: "$2b$12$mwSIOyxLJid1jK3YxJ7S0.6K6YB7Y6j5eY0s7i0e6M8tQdQ0B6m8C"
 
 cookie:
   expiry_days: 30
-  key: some_signature_key
+  key: random_signature_key
   name: windeurope_cookie
 
 preauthorized:
