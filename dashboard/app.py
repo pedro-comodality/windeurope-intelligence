@@ -440,84 +440,87 @@ with tab5:
             scrolling=True
         )
         ```python id="y1odqr"
+
 # =====================================================
+
 # TAB 6 — DEAL INTELLIGENCE
+
 # =====================================================
 
 with tab6:
 
-    st.subheader(
-        "🧠 AI Deal Intelligence Engine"
-    )
+st.subheader(
+    "🧠 AI Deal Intelligence Engine"
+)
 
-    # =================================================
-    # ACQUISITION TARGETS
-    # =================================================
+# =================================================
+# ACQUISITION TARGETS
+# =================================================
 
-    st.markdown(
-        "## 🏢 Top Acquisition Targets"
-    )
+st.markdown(
+    "## 🏢 Top Acquisition Targets"
+)
 
-    acquisition_df = top_acquisition_targets(df)
+acquisition_df = top_acquisition_targets(df)
 
-    st.dataframe(
+st.dataframe(
 
-        acquisition_df[
-            [
-                "company",
-                "country",
-                "deal_score",
-                "final_strategic_score"
-            ]
-        ],
+    acquisition_df[
+        [
+            "company",
+            "country",
+            "deal_score",
+            "final_strategic_score"
+        ]
+    ],
 
-        use_container_width=True
-    )
+    use_container_width=True
+)
 
-    # =================================================
-    # PARTNERSHIP TARGETS
-    # =================================================
+# =================================================
+# PARTNERSHIP TARGETS
+# =================================================
 
-    st.markdown(
-        "## 🤝 Strategic Partnership Targets"
-    )
+st.markdown(
+    "## 🤝 Strategic Partnership Targets"
+)
 
-    partnership_df = top_partnership_targets(df)
+partnership_df = top_partnership_targets(df)
 
-    st.dataframe(
+st.dataframe(
 
-        partnership_df[
-            [
-                "company",
-                "country",
-                "partnership_rank",
-                "partnership_score"
-            ]
-        ],
+    partnership_df[
+        [
+            "company",
+            "country",
+            "partnership_rank",
+            "partnership_score"
+        ]
+    ],
 
-        use_container_width=True
-    )
+    use_container_width=True
+)
 
-    # =================================================
-    # HIDDEN CHAMPIONS
-    # =================================================
+# =================================================
+# HIDDEN CHAMPIONS
+# =================================================
 
-    st.markdown(
-        "## 🚀 Hidden Champions"
-    )
+st.markdown(
+    "## 🚀 Hidden Champions"
+)
 
-    hidden_df = hidden_champions(df)
+hidden_df = hidden_champions(df)
 
-    st.dataframe(
+st.dataframe(
 
-        hidden_df[
-            [
-                "company",
-                "country",
-                "final_strategic_score",
-                "strategic_category_v2"
-            ]
-        ],
+    hidden_df[
+        [
+            "company",
+            "country",
+            "final_strategic_score",
+            "strategic_category_v2"
+        ]
+    ],
 
-        use_container_width=True
-    )
+    use_container_width=True
+)
