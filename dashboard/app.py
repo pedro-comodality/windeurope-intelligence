@@ -175,10 +175,56 @@ df = calculate_advanced_scores(df)
 
 st.sidebar.header("🎯 Filters")
 
+# =====================================================
+# COUNTRY FILTER
+# =====================================================
+
+if "country" in df.columns:
+
+    country_values = sorted(
+        df["country"]
+        .dropna()
+        .astype(str)
+        .unique()
+    )
+
+    selected_countries = st.sidebar.multiselect(
+        "🌍 Countries",
+        options=country_values,
+        default=country_values
+    )
+
+    df = df[
+        df["country"]
+        .isin(selected_countries)
+    ]
+
+
+
 search = st.sidebar.text_input(
     "Search company"
 )
+# =====================================================
+# COUNTRY FILTER
+# =====================================================
 
+country_values = sorted(
+    df["country"]
+    .dropna()
+    .astype(str)
+    .unique()
+)
+
+selected_countries = st.sidebar.multiselect(
+    "🌍 Countries",
+    options=country_values,
+    default=country_values
+)
+
+df = df[
+    df["country"]
+    .isin(selected_countries)
+]
 if search:
 
     df = df[
@@ -288,6 +334,17 @@ tab1, tab2, tab3, tab4, tab5 = st.tabs([
 with tab1:
 
     st.subheader("📊 Executive Dashboard")
+# =====================================================
+# COUNTRY OVERVIEW
+# =====================================================
+
+selected_country_count = (
+    len(selected_countries)
+)
+
+st.info(
+    f"🌍 Active Countries: {selected_country_count}"
+)
 
     col1, col2, col3, col4, col5 = st.columns(5)
 
@@ -324,7 +381,39 @@ with tab1:
     # =================================================
     # COUNTRY DISTRIBUTION
     # =================================================
+# =====================================================
+# TOP COUNTRIES
+# =====================================================
 
+st.subheader("🏆 Top Countries by Strategic Score")
+
+country_scores = (
+
+    df.groupby("country")[
+        "final_strategic_score"
+    ]
+
+    .mean()
+
+    .reset_index()
+
+    .sort_values(
+        "final_strategic_score",
+        ascending=False
+    )
+
+)
+
+country_score_chart = px.bar(
+    country_scores,
+    x="country",
+    y="final_strategic_score"
+)
+
+st.plotly_chart(
+    country_score_chart,
+    use_container_width=True
+)
     st.subheader("🌍 Country Distribution")
 
     country_chart = px.histogram(
@@ -396,6 +485,40 @@ with tab1:
         ],
         use_container_width=True
     )
+
+# =====================================================
+# COUNTRY LEADERS
+# =====================================================
+
+st.subheader("🌍 Country Strategic Leaders")
+
+country_leaders = (
+
+    df.sort_values(
+        "final_strategic_score",
+        ascending=False
+    )
+
+    .groupby("country")
+
+    .head(3)
+
+)
+
+st.dataframe(
+
+    country_leaders[
+        [
+            "country",
+            "company",
+            "final_strategic_score",
+            "strategic_category_v2"
+        ]
+    ],
+
+    use_container_width=True
+)
+
 
 # =====================================================
 # TAB 2 — INTELLIGENCE
