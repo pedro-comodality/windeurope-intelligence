@@ -1,4 +1,3 @@
-```python
 import streamlit as st
 import sys
 import os
@@ -435,4 +434,3 @@ with tab5:
             height=900,
             scrolling=True
         )
-```
