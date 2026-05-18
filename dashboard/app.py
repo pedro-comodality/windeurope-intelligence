@@ -6,32 +6,74 @@ import pandas as pd
 import plotly.express as px
 import streamlit.components.v1 as components
 import streamlit_authenticator as stauth
-from src.crm.watchlist_engine import (
-    load_watchlist,
-    add_to_watchlist
-)
 
 from yaml.loader import SafeLoader
 
 # =====================================================
+
 # PATH FIX
+
 # =====================================================
 
 ROOT_DIR = os.path.abspath(
-    os.path.join(
-        os.path.dirname(__file__),
-        ".."
-    )
+os.path.join(
+os.path.dirname(**file**),
+".."
+)
 )
 
 if ROOT_DIR not in sys.path:
-    sys.path.append(ROOT_DIR)
+sys.path.append(ROOT_DIR)
+
+# =====================================================
+
+# IMPORTS
+
+# =====================================================
 
 from src.intelligence.deal_engine import (
-    top_acquisition_targets,
-    top_partnership_targets,
-    hidden_champions
+top_acquisition_targets,
+top_partnership_targets,
+hidden_champions
 )
+
+from src.crm.watchlist_engine import (
+load_watchlist,
+add_to_watchlist
+)
+
+from src.reporting.pdf_report import (
+generate_executive_pdf
+)
+
+from src.profiling.executive_summary import (
+generate_executive_summary
+)
+
+from src.visualization.network_graph import (
+build_network_graph
+)
+
+from src.profiling.recommendation_engine import (
+top_strategic_companies
+)
+
+from src.profiling.chat_analyst import (
+ask_ai_analyst
+)
+
+from src.crm.crm_engine import (
+save_crm
+)
+
+from src.sales.meeting_prep import (
+generate_meeting_prep
+)
+
+from src.scoring.advanced_scoring import (
+calculate_advanced_scores
+)
+
 # =====================================================
 # IMPORTS
 # =====================================================
@@ -229,7 +271,7 @@ tab1, tab2, tab3, tab4, tab5, tab6, tab7 = st.tabs([
     "🤖 AI Analyst",
     "📌 CRM",
     "🌐 Network",
-    "🧠 Deal Intelligence"
+    "🧠 Deal Intelligence",
     "⭐ Watchlist"
 ])
 
