@@ -8,11 +8,7 @@ import streamlit.components.v1 as components
 import streamlit_authenticator as stauth
 
 from yaml.loader import SafeLoader
-from src.intelligence.deal_engine import (
-    top_acquisition_targets,
-    top_partnership_targets,
-    hidden_champions
-)
+
 # =====================================================
 # PATH FIX
 # =====================================================
@@ -27,6 +23,11 @@ ROOT_DIR = os.path.abspath(
 if ROOT_DIR not in sys.path:
     sys.path.append(ROOT_DIR)
 
+from src.intelligence.deal_engine import (
+    top_acquisition_targets,
+    top_partnership_targets,
+    hidden_champions
+)
 # =====================================================
 # IMPORTS
 # =====================================================
