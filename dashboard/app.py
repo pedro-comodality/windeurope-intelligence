@@ -6,6 +6,10 @@ import pandas as pd
 import plotly.express as px
 import streamlit.components.v1 as components
 import streamlit_authenticator as stauth
+from src.crm.watchlist_engine import (
+    load_watchlist,
+    add_to_watchlist
+)
 
 from yaml.loader import SafeLoader
 
@@ -219,13 +223,14 @@ if "country" in df.columns:
 # TABS
 # =====================================================
 
-tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
+tab1, tab2, tab3, tab4, tab5, tab6, tab7 = st.tabs([
     "📊 Dashboard",
     "🧠 Intelligence",
     "🤖 AI Analyst",
     "📌 CRM",
     "🌐 Network",
     "🧠 Deal Intelligence"
+    "⭐ Watchlist"
 ])
 
 # =====================================================
@@ -520,5 +525,57 @@ with tab6:
             ]
         ],
 
+        use_container_width=True
+    )
+# =====================================================
+# TAB 7 — WATCHLIST
+# =====================================================
+
+with tab7:
+
+    st.subheader(
+        "⭐ Strategic Watchlist"
+    )
+
+    if "row" in locals():
+
+        watchlist_status = st.selectbox(
+            "Watchlist Status",
+            [
+                "Target",
+                "Partner",
+                "Supplier",
+                "Monitor",
+                "Competitor"
+            ]
+        )
+
+        watchlist_notes = st.text_area(
+            "Watchlist Notes"
+        )
+
+        if st.button(
+            "➕ Add To Watchlist"
+        ):
+
+            add_to_watchlist(
+                row["company"],
+                row["country"],
+                watchlist_status,
+                watchlist_notes
+            )
+
+            st.success(
+                "Added to watchlist"
+            )
+
+    st.markdown(
+        "## 📋 Current Watchlist"
+    )
+
+    watchlist_df = load_watchlist()
+
+    st.dataframe(
+        watchlist_df,
         use_container_width=True
     )
