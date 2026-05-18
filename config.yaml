@@ -2,8 +2,8 @@ credentials:
   usernames:
     admin:
       email: admin@windeurope.com
-      name: Pedro
-      password: "$2b$12$mwSIOyxLJid1jK3YxJ7S0.6K6YB7Y6j5eY0s7i0e6M8tQdQ0B6m8C"
+      name:  admin
+      password: "wind2026"
 
 cookie:
   expiry_days: 30
