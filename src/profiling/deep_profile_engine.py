@@ -13,7 +13,6 @@ client = OpenAI(
     api_key=os.getenv("OPENAI_API_KEY")
 )
 
-
 # =====================================================
 # AI PROFILE ANALYSIS
 # =====================================================
@@ -46,7 +45,7 @@ WEBSITE CONTENT:
 
 Return ONLY valid JSON.
 
-{
+{{
     "segment": "",
     "offshore_maturity": 0,
     "floating_readiness": 0,
@@ -58,7 +57,7 @@ Return ONLY valid JSON.
     "market_presence": 0,
     "recommended_priority": "",
     "summary": ""
-}
+}}
 
 Scoring rules:
 - 0-100
@@ -81,7 +80,12 @@ Scoring rules:
             temperature=0.2
         )
 
-        content = response.choices[0].message.content
+        content = response.choices[0].message.content.strip()
+
+        # CLEAN MARKDOWN JSON IF GPT RETURNS ```json
+        content = content.replace("```json", "")
+        content = content.replace("```", "")
+        content = content.strip()
 
         result = json.loads(content)
 
@@ -91,7 +95,19 @@ Scoring rules:
 
         print(f"ERROR profiling company: {e}")
 
-        return {}
+        return {
+            "segment": "",
+            "offshore_maturity": 0,
+            "floating_readiness": 0,
+            "epc_strength": 0,
+            "innovation_score": 0,
+            "digitalization_score": 0,
+            "strategic_fit": 0,
+            "growth_potential": 0,
+            "market_presence": 0,
+            "recommended_priority": "",
+            "summary": ""
+        }
 
 
 # =====================================================
@@ -111,6 +127,24 @@ def enrich_profiles(df):
         profile = analyze_company(row)
 
         profiles.append(profile)
+
+        # SAVE PROGRESS EVERY 25 COMPANIES
+        if (idx + 1) % 25 == 0:
+
+            temp_df = pd.concat(
+                [
+                    df.iloc[:idx+1].reset_index(drop=True),
+                    pd.DataFrame(profiles)
+                ],
+                axis=1
+            )
+
+            temp_df.to_excel(
+                "data/exports/windeurope_ai_enriched_progress.xlsx",
+                index=False
+            )
+
+            print(f"Saved progress: {idx+1} companies")
 
         time.sleep(1)
 

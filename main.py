@@ -49,7 +49,7 @@ print("\nPDF parsing completed")
 # comenta esta línea para procesar TODO
 # =====================================================
 
-df = df.head(5)
+df = df
 
 
 # =====================================================

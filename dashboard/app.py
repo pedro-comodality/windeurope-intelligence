@@ -1,38 +1,32 @@
-
 import streamlit as st
-
-from src.reporting.pdf_report import (
-    generate_executive_pdf
-)
+import sys
+import os
 
 # =====================================================
-# PAGE CONFIG
+# PATH FIX
 # =====================================================
 
-st.set_page_config(
-    page_title="WindEurope Intelligence",
-    layout="wide"
+ROOT_DIR = os.path.abspath(
+    os.path.join(
+        os.path.dirname(__file__),
+        ".."
+    )
 )
+
+if ROOT_DIR not in sys.path:
+    sys.path.append(ROOT_DIR)
 
 # =====================================================
 # IMPORTS
 # =====================================================
 
-import sys
-import os
-
-sys.path.append(
-    os.path.abspath(
-        os.path.join(
-            os.path.dirname(__file__),
-            ".."
-        )
-    )
-)
-
 import pandas as pd
 import plotly.express as px
 import streamlit.components.v1 as components
+
+from src.reporting.pdf_report import (
+    generate_executive_pdf
+)
 
 from src.profiling.executive_summary import (
     generate_executive_summary
@@ -71,6 +65,14 @@ from src.sales.meeting_prep import (
     generate_meeting_prep
 )
 
+# =====================================================
+# PAGE CONFIG
+# =====================================================
+
+st.set_page_config(
+    page_title="WindEurope Intelligence",
+    layout="wide"
+)
 # =====================================================
 # STYLING
 # =====================================================
@@ -125,12 +127,12 @@ st.caption(
 def load_data():
 
     return pd.read_excel(
-        "data/exports/windeurope_ai_v3.xlsx"
+        "data/exports/windeurope_ai_sales.xlsx"
     )
 
 df = load_data()
 st.write("TOTAL COMPANIES:", len(df))
-
+st.success("Dataset loaded successfully")
 # =====================================================
 # SIDEBAR
 # =====================================================
@@ -456,9 +458,15 @@ with tab2:
 
         # PDF REPORT
 
-        pdf_path = generate_executive_pdf(
-            row,
-            summary
+# PDF REPORT
+
+        if st.button("Generate Executive PDF"):
+
+        with st.spinner("Generating executive report..."):
+
+             pdf_path = generate_executive_pdf(
+                 row,
+                 summary
         )
 
         with open(pdf_path, "rb") as pdf_file:
@@ -469,22 +477,27 @@ with tab2:
                 file_name=f"{row['company']}_executive_report.pdf",
                 mime="application/pdf"
             )
-
         # WEBSITE
 
         st.subheader("🌐 Website Intelligence")
 
-        st.write(
-            row.get("website_text", "")
-        )
+        website_text = row.get("website_text", "")
+
+        if pd.notna(website_text) and website_text != "":
+            st.write(website_text)
+        else:
+            st.info("No website intelligence available")
 
         # SALES STRATEGY
 
         st.subheader("🤖 AI Sales Strategy")
 
-        st.write(
-            row["sales_strategy"]
-        )
+        sales_strategy = row.get("sales_strategy", "")
+
+        if sales_strategy:
+            st.write(sales_strategy)
+        else:
+            st.info("AI sales strategy not generated yet")
 
         # RELATIONSHIP ANALYSIS
 
