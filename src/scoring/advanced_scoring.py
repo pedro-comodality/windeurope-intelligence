@@ -2,109 +2,148 @@ import pandas as pd
 
 
 # =====================================================
-# SAFE VALUE
+# ADVANCED STRATEGIC SCORING ENGINE
 # =====================================================
 
-def safe_number(value):
+def calculate_advanced_scores(df):
 
-    try:
-        return float(value)
-    except:
-        return 0
+    # =================================================
+    # OFFSHORE SCORE
+    # =================================================
 
+    df["offshore_score"] = (
+        df["potencial_offshore"].fillna(0) * 20
+    )
 
-# =====================================================
-# STRATEGIC SCORE
-# =====================================================
+    # =================================================
+    # FLOATING SCORE
+    # =================================================
 
-def calculate_strategic_score(row):
+    df["floating_score"] = (
+        df["potencial_floating"].fillna(0) * 20
+    )
 
-    score = 0
+    # =================================================
+    # EPC SCORE
+    # =================================================
 
-    # =========================================
-    # OFFSHORE
-    # =========================================
+    df["epc_score"] = (
+        df["potencial_epc"].fillna(0) * 20
+    )
 
-    score += safe_number(
-        row.get("offshore_maturity")
-    ) * 0.20
+    # =================================================
+    # INNOVATION SCORE
+    # =================================================
 
-    # =========================================
-    # FLOATING
-    # =========================================
+    df["innovation_score_v2"] = (
+        df["innovacion"].fillna(0) * 20
+    )
 
-    score += safe_number(
-        row.get("floating_readiness")
-    ) * 0.20
+    # =================================================
+    # DIGITALIZATION SCORE
+    # =================================================
 
-    # =========================================
-    # EPC
-    # =========================================
+    df["digital_score"] = (
+        df["digitalizacion"].fillna(0) * 20
+    )
 
-    score += safe_number(
-        row.get("epc_strength")
-    ) * 0.15
+    # =================================================
+    # ECOSYSTEM SCORE
+    # =================================================
 
-    # =========================================
-    # INNOVATION
-    # =========================================
+    ecosystem_base = (
+        df["offshore_score"]
+        + df["floating_score"]
+        + df["epc_score"]
+    ) / 3
 
-    score += safe_number(
-        row.get("innovation_score")
-    ) * 0.10
+    df["ecosystem_score"] = ecosystem_base
 
-    # =========================================
-    # DIGITALIZATION
-    # =========================================
+    # =================================================
+    # PARTNERSHIP SCORE
+    # =================================================
 
-    score += safe_number(
-        row.get("digitalization_score")
-    ) * 0.10
+    df["partnership_score"] = (
+        (
+            df["innovation_score_v2"]
+            + df["digital_score"]
+            + df["ecosystem_score"]
+        ) / 3
+    )
 
-    # =========================================
-    # STRATEGIC FIT
-    # =========================================
+    # =================================================
+    # ACQUISITION SCORE
+    # =================================================
 
-    score += safe_number(
-        row.get("strategic_fit")
-    ) * 0.15
+    df["acquisition_score"] = (
+        (
+            df["growth"].fillna(0) * 20
+            + df["innovation_score_v2"]
+        ) / 2
+    )
 
-    # =========================================
-    # GROWTH
-    # =========================================
+    # =================================================
+    # INFLUENCE SCORE
+    # =================================================
 
-    score += safe_number(
-        row.get("growth_potential")
-    ) * 0.05
+    df["influence_score"] = (
+        (
+            df["market_presence"].fillna(3) * 20
+        )
+    )
 
-    # =========================================
-    # MARKET PRESENCE
-    # =========================================
+    # =================================================
+    # FINAL STRATEGIC SCORE
+    # =================================================
 
-    score += safe_number(
-        row.get("market_presence")
-    ) * 0.05
+    df["final_strategic_score"] = (
 
-    return round(score, 2)
+        df["offshore_score"] * 0.20 +
 
+        df["floating_score"] * 0.15 +
 
-# =====================================================
-# CLASSIFICATION
-# =====================================================
+        df["epc_score"] * 0.15 +
 
-def classify_strategic_level(score):
+        df["innovation_score_v2"] * 0.15 +
 
-    if score >= 8:
-        return "STRATEGIC"
+        df["digital_score"] * 0.10 +
 
-    elif score >= 6:
-        return "HIGH VALUE"
+        df["partnership_score"] * 0.15 +
 
-    elif score >= 4:
-        return "GROWTH TARGET"
+        df["influence_score"] * 0.10
 
-    elif score >= 2:
-        return "NICHE PLAYER"
+    )
 
-    else:
-        return "LOW PRIORITY"
+    df["final_strategic_score"] = (
+        df["final_strategic_score"]
+        .round(0)
+        .astype(int)
+    )
+
+    # =================================================
+    # STRATEGIC CATEGORY
+    # =================================================
+
+    def categorize(score):
+
+        if score >= 85:
+            return "ELITE"
+
+        elif score >= 70:
+            return "STRATEGIC"
+
+        elif score >= 55:
+            return "HIGH VALUE"
+
+        elif score >= 40:
+            return "GROWTH TARGET"
+
+        else:
+            return "LOW PRIORITY"
+
+    df["strategic_category_v2"] = (
+        df["final_strategic_score"]
+        .apply(categorize)
+    )
+
+    return df

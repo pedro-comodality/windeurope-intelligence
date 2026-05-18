@@ -63,6 +63,10 @@ from src.sales.meeting_prep import (
     generate_meeting_prep
 )
 
+from src.scoring.advanced_scoring import (
+    calculate_advanced_scores
+)
+
 # =====================================================
 # PAGE CONFIG
 # =====================================================
@@ -130,6 +134,12 @@ def load_data():
     )
 
 df = load_data()
+
+# =====================================================
+# ADVANCED SCORING
+# =====================================================
+
+df = calculate_advanced_scores(df)
 
 st.success("Dataset loaded successfully")
 st.write("TOTAL COMPANIES:", len(df))
@@ -285,9 +295,14 @@ with tab1:
         )
 
     col3.metric(
-        "Strategic",
-        strategic_count
+        "Elite + Strategic",
+        len(
+            df[
+               df["strategic_category_v2"]
+               .isin(["ELITE", "STRATEGIC"])
+            ]
     )
+)
 
     offshore_count = 0
 
