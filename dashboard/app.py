@@ -10,36 +10,32 @@ import streamlit_authenticator as stauth
 from yaml.loader import SafeLoader
 
 # =====================================================
-
 # PATH FIX
-
 # =====================================================
 
 ROOT_DIR = os.path.abspath(
-os.path.join(
-os.path.dirname(**file**),
-".."
-)
+    os.path.join(
+        os.path.dirname(__file__),
+        ".."
+    )
 )
 
 if ROOT_DIR not in sys.path:
-sys.path.append(ROOT_DIR)
+    sys.path.append(ROOT_DIR)
 
 # =====================================================
-
 # IMPORTS
-
 # =====================================================
-
-from src.intelligence.deal_engine import (
-top_acquisition_targets,
-top_partnership_targets,
-hidden_champions
-)
 
 from src.crm.watchlist_engine import (
-load_watchlist,
-add_to_watchlist
+    load_watchlist,
+    add_to_watchlist
+)
+
+from src.intelligence.deal_engine import (
+    top_acquisition_targets,
+    top_partnership_targets,
+    hidden_champions
 )
 
 from src.reporting.pdf_report import (
