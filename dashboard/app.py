@@ -1,9 +1,14 @@
-import yaml
-import streamlit_authenticator as stauth
-from yaml.loader import SafeLoader
+```python
 import streamlit as st
 import sys
 import os
+import yaml
+import pandas as pd
+import plotly.express as px
+import streamlit.components.v1 as components
+import streamlit_authenticator as stauth
+
+from yaml.loader import SafeLoader
 
 # =====================================================
 # PATH FIX
@@ -23,10 +28,6 @@ if ROOT_DIR not in sys.path:
 # IMPORTS
 # =====================================================
 
-import pandas as pd
-import plotly.express as px
-import streamlit.components.v1 as components
-
 from src.reporting.pdf_report import (
     generate_executive_pdf
 )
@@ -35,27 +36,16 @@ from src.profiling.executive_summary import (
     generate_executive_summary
 )
 
-from src.profiling.relationship_engine import (
-    generate_relationship_analysis
-)
-
 from src.visualization.network_graph import (
     build_network_graph
 )
 
 from src.profiling.recommendation_engine import (
-    top_strategic_companies,
-    top_floating_companies,
-    top_epc_companies,
-    top_digitalization_companies
+    top_strategic_companies
 )
 
 from src.profiling.chat_analyst import (
     ask_ai_analyst
-)
-
-from src.sales.outreach_generator import (
-    generate_outreach_email
 )
 
 from src.crm.crm_engine import (
@@ -78,6 +68,7 @@ st.set_page_config(
     page_title="WindEurope Intelligence",
     layout="wide"
 )
+
 # =====================================================
 # AUTHENTICATION
 # =====================================================
@@ -118,6 +109,7 @@ elif st.session_state["authentication_status"] is None:
 
     st.warning("Please login")
     st.stop()
+
 # =====================================================
 # STYLING
 # =====================================================
@@ -176,6 +168,26 @@ df = calculate_advanced_scores(df)
 st.sidebar.header("🎯 Filters")
 
 # =====================================================
+# SEARCH
+# =====================================================
+
+search = st.sidebar.text_input(
+    "Search company"
+)
+
+if search:
+
+    df = df[
+        df["company"]
+        .astype(str)
+        .str.contains(
+            search,
+            case=False,
+            na=False
+        )
+    ]
+
+# =====================================================
 # COUNTRY FILTER
 # =====================================================
 
@@ -199,92 +211,6 @@ if "country" in df.columns:
         .isin(selected_countries)
     ]
 
-
-
-search = st.sidebar.text_input(
-    "Search company"
-)
-
-# =====================================================
-# LEAD TIER
-# =====================================================
-
-if "lead_tier" in df.columns:
-
-    tier_values = (
-        df["lead_tier"]
-        .dropna()
-        .unique()
-    )
-
-    tier_filter = st.sidebar.multiselect(
-        "Lead Tier",
-        options=tier_values,
-        default=tier_values
-    )
-
-    df = df[
-        df["lead_tier"].isin(tier_filter)
-    ]
-
-# =====================================================
-# STRATEGIC LEVEL
-# =====================================================
-
-if "strategic_level" in df.columns:
-
-    strategic_values = (
-        df["strategic_level"]
-        .dropna()
-        .unique()
-    )
-
-    strategic_filter = st.sidebar.multiselect(
-        "Strategic Level",
-        options=strategic_values,
-        default=strategic_values
-    )
-
-    df = df[
-        df["strategic_level"].isin(
-            strategic_filter
-        )
-    ]
-
-# =====================================================
-# FILTERS
-# =====================================================
-
-offshore_filter = st.sidebar.checkbox(
-    "Offshore only"
-)
-
-if offshore_filter:
-
-    df = df[
-        df["offshore"] == True
-    ]
-
-floating_filter = st.sidebar.checkbox(
-    "Floating Wind only"
-)
-
-if floating_filter:
-
-    df = df[
-        df["floating_wind"] == True
-    ]
-
-epc_filter = st.sidebar.checkbox(
-    "EPC only"
-)
-
-if epc_filter:
-
-    df = df[
-        df["epc"] == True
-    ]
-
 # =====================================================
 # TABS
 # =====================================================
@@ -298,28 +224,14 @@ tab1, tab2, tab3, tab4, tab5 = st.tabs([
 ])
 
 # =====================================================
-# TAB 1 — DASHBOARD
+# TAB 1
 # =====================================================
 
 with tab1:
 
     st.subheader("📊 Executive Dashboard")
 
-    # =================================================
-    # COUNTRY OVERVIEW
-    # =================================================
-
-    selected_country_count = len(selected_countries)
-
-    st.info(
-        f"🌍 Active Countries: {selected_country_count}"
-    )
-
-    # =================================================
-    # KPI METRICS
-    # =================================================
-
-    col1, col2, col3, col4, col5 = st.columns(5)
+    col1, col2, col3, col4 = st.columns(4)
 
     col1.metric(
         "Companies",
@@ -327,69 +239,33 @@ with tab1:
     )
 
     col2.metric(
-        "HOT Leads",
-        len(df[df["lead_tier"] == "HOT"])
+        "Countries",
+        df["country"].nunique()
     )
 
     col3.metric(
-        "Elite + Strategic",
+        "Elite",
         len(
             df[
                 df["strategic_category_v2"]
-                .isin(["ELITE", "STRATEGIC"])
+                == "ELITE"
             ]
         )
     )
 
     col4.metric(
-        "Offshore",
-        len(df[df["offshore"] == True])
-    )
-
-    col5.metric(
-        "Floating",
-        len(df[df["floating_wind"] == True])
-    )
-
-    # =================================================
-    # TOP COUNTRIES
-    # =================================================
-
-    st.subheader("🏆 Top Countries by Strategic Score")
-
-    country_scores = (
-
-        df.groupby("country")[
-            "final_strategic_score"
-        ]
-
-        .mean()
-
-        .reset_index()
-
-        .sort_values(
-            "final_strategic_score",
-            ascending=False
+        "Strategic",
+        len(
+            df[
+                df["strategic_category_v2"]
+                == "STRATEGIC"
+            ]
         )
-
     )
 
-    country_score_chart = px.bar(
-        country_scores,
-        x="country",
-        y="final_strategic_score"
+    st.subheader(
+        "🌍 Country Distribution"
     )
-
-    st.plotly_chart(
-        country_score_chart,
-        use_container_width=True
-    )
-
-    # =================================================
-    # COUNTRY DISTRIBUTION
-    # =================================================
-
-    st.subheader("🌍 Country Distribution")
 
     country_chart = px.histogram(
         df,
@@ -401,107 +277,15 @@ with tab1:
         use_container_width=True
     )
 
-    # =================================================
-    # ADVANCED STRATEGIC SCORE
-    # =================================================
-
-    st.subheader("🚀 Advanced Strategic Score")
-
-    advanced_chart = px.histogram(
-        df,
-        x="final_strategic_score",
-        nbins=20
-    )
-
-    st.plotly_chart(
-        advanced_chart,
-        use_container_width=True
-    )
-
-    # =================================================
-    # STRATEGIC CATEGORY
-    # =================================================
-
-    st.subheader("🏆 Strategic Category Distribution")
-
-    category_chart = px.histogram(
-        df,
-        x="strategic_category_v2",
-        color="strategic_category_v2"
-    )
-
-    st.plotly_chart(
-        category_chart,
-        use_container_width=True
-    )
-
-    # =================================================
-    # ELITE COMPANIES
-    # =================================================
-
-    st.subheader("🚀 Elite Strategic Companies")
-
-    elite_df = df.sort_values(
-        "final_strategic_score",
-        ascending=False
-    ).head(25)
-
-    st.dataframe(
-        elite_df[
-            [
-                "company",
-                "country",
-                "final_strategic_score",
-                "strategic_category_v2",
-                "offshore_score",
-                "floating_score",
-                "epc_score"
-            ]
-        ],
-        use_container_width=True
-    )
-
-    # =================================================
-    # COUNTRY LEADERS
-    # =================================================
-
-    st.subheader("🌍 Country Strategic Leaders")
-
-    country_leaders = (
-
-        df.sort_values(
-            "final_strategic_score",
-            ascending=False
-        )
-
-        .groupby("country")
-
-        .head(3)
-
-    )
-
-    st.dataframe(
-
-        country_leaders[
-            [
-                "country",
-                "company",
-                "final_strategic_score",
-                "strategic_category_v2"
-            ]
-        ],
-
-        use_container_width=True
-    )
-
-
 # =====================================================
-# TAB 2 — INTELLIGENCE
+# TAB 2
 # =====================================================
 
 with tab2:
 
-    st.subheader("🎯 AI Target Recommendations")
+    st.subheader(
+        "🎯 Strategic Intelligence"
+    )
 
     strategic_df = top_strategic_companies(df)
 
@@ -509,8 +293,6 @@ with tab2:
         strategic_df.head(25),
         use_container_width=True
     )
-
-    # COMPANY SELECTOR
 
     company_selected = st.selectbox(
         "Select company",
@@ -525,101 +307,94 @@ with tab2:
 
         row = selected_df.iloc[0]
 
-        st.subheader("🧠 Company Intelligence")
+        st.subheader(
+            "🧠 Company Intelligence"
+        )
 
         st.write(row)
-
-        # EXECUTIVE SUMMARY
-
-        st.subheader("📋 Executive Summary")
 
         summary = generate_executive_summary(
             row
         )
 
+        st.subheader(
+            "📋 Executive Summary"
+        )
+
         st.write(summary)
 
-        # PDF
+        if st.button(
+            "📄 Generate Executive PDF"
+        ):
 
-        st.subheader("📄 Executive Report")
+            pdf_path = generate_executive_pdf(
+                row,
+                summary
+            )
 
-        if st.button("📄 Generate Executive PDF"):
+            with open(
+                pdf_path,
+                "rb"
+            ) as pdf_file:
 
-            with st.spinner(
-                "Generating executive report..."
-            ):
-
-                pdf_path = generate_executive_pdf(
-                    row,
-                    summary
+                st.download_button(
+                    label="⬇ Download PDF",
+                    data=pdf_file,
+                    file_name=f"{row['company']}.pdf",
+                    mime="application/pdf"
                 )
 
-                with open(
-                    pdf_path,
-                    "rb"
-                ) as pdf_file:
-
-                    st.download_button(
-                        label="⬇ Download Executive PDF",
-                        data=pdf_file,
-                        file_name=f"{row['company']}_executive_report.pdf",
-                        mime="application/pdf"
-                    )
-
 # =====================================================
-# TAB 3 — AI ANALYST
+# TAB 3
 # =====================================================
 
 with tab3:
 
     st.subheader(
-        "🧠 AI Market Intelligence Analyst"
+        "🤖 AI Market Analyst"
     )
 
     question = st.text_input(
-        "Ask the AI analyst"
+        "Ask AI"
     )
 
     if question:
 
-        with st.spinner(
-            "Analyzing..."
-        ):
+        answer = ask_ai_analyst(
+            question,
+            df
+        )
 
-            answer = ask_ai_analyst(
-                question,
-                df
-            )
-
-            st.write(answer)
+        st.write(answer)
 
 # =====================================================
-# TAB 4 — CRM
+# TAB 4
 # =====================================================
 
 with tab4:
 
-    st.subheader("📌 CRM Management")
+    st.subheader("📌 CRM")
 
     if "row" in locals():
 
         crm_status = st.selectbox(
-            "Lead Status",
+            "Status",
             [
                 "Prospect",
                 "Contacted",
                 "Meeting",
                 "Proposal",
-                "Partner",
-                "Rejected"
+                "Partner"
             ]
         )
 
         crm_notes = st.text_area(
-            "Commercial Notes"
+            "Notes"
         )
 
-        if st.button("Save CRM"):
+        if st.button(
+            "Save CRM"
+        ):
 
             save_crm(
                 row["company"],
@@ -628,39 +403,36 @@ with tab4:
             )
 
             st.success(
-                "CRM updated"
+                "CRM Updated"
             )
 
 # =====================================================
-# TAB 5 — NETWORK
+# TAB 5
 # =====================================================
 
 with tab5:
 
     st.subheader(
-        "🌐 Offshore Ecosystem Network"
+        "🌐 Ecosystem Network"
     )
 
     if st.button(
-        "Generate Network Graph"
+        "Generate Network"
     ):
 
-        with st.spinner(
-            "Building graph..."
-        ):
+        graph_path = build_network_graph(df)
 
-            graph_path = build_network_graph(df)
+        with open(
+            graph_path,
+            "r",
+            encoding="utf-8"
+        ) as f:
 
-            with open(
-                graph_path,
-                "r",
-                encoding="utf-8"
-            ) as f:
+            html_data = f.read()
 
-                html_data = f.read()
-
-            components.html(
-                html_data,
-                height=900,
-                scrolling=True
-            )
+        components.html(
+            html_data,
+            height=900,
+            scrolling=True
+        )
+```
