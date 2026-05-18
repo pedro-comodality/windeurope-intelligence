@@ -1,18 +1,15 @@
-```yaml
 credentials:
   usernames:
-
     admin:
       email: admin@windeurope.com
       name: Pedro
-      password: "$2b$12$MWnCwYk1b7Jx0M2u7nS8UuM3fM5s8wXx4x2M8l9pQfQ7uT8bM"
+      password: "$2b$12$mwSIOyxLJid1jK3YxJ7S0.6K6YB7Y6j5eY0s7i0e6M8tQdQ0B6m8C"
 
 cookie:
   expiry_days: 30
-  key: windeurope_cookie_key
+  key: random_signature_key
   name: windeurope_cookie
 
 preauthorized:
   emails:
     - admin@windeurope.com
-```
