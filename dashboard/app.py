@@ -488,6 +488,9 @@ with tab4:
 # =====================================================
 # TAB 5
 # =====================================================
+# =====================================================
+# TAB 5 — NETWORK
+# =====================================================
 
 with tab5:
 
@@ -499,28 +502,34 @@ with tab5:
         "Generate Network"
     ):
 
-        try:
+        graph_path = build_network_graph(df)
 
-            graph_path = build_network_graph(df)
+        # =============================================
+        # READ HTML
+        # =============================================
 
-            with open(
-                graph_path,
-                "r",
-                encoding="utf-8"
-            ) as f:
+        with open(
+            graph_path,
+            "r",
+            encoding="utf-8"
+        ) as f:
 
-                html_data = f.read()
+            source_code = f.read()
 
-            components.html(
-                html_data,
-                height=900,
-                scrolling=True
-            )
+        # =============================================
+        # DISPLAY
+        # =============================================
 
-        except Exception as e:
+        st.components.v1.html(
 
-            st.error(str(e))
+            source_code,
 
+            height=900,
+
+            scrolling=True
+
+        )
+    
 # =====================================================
 # TAB 6
 # =====================================================
