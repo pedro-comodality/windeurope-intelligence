@@ -505,11 +505,15 @@ with tab5:
 
         try:
 
-           st.write("STARTING GRAPH")
+            st.write("STARTING GRAPH")
 
-           html_data = build_network_graph(df)
+            small_df = df.head(50)
 
-           st.write("GRAPH BUILT")
+            html_data = build_network_graph(
+                small_df
+            )
+
+            st.write("GRAPH BUILT")
 
             st.success("GRAPH GENERATED")
 
