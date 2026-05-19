@@ -1,21 +1,6 @@
 import streamlit as st
 import sys
 import os
-import yaml
-import pandas as pd
-import plotly.express as px
-import streamlit.components.v1 as components
-import streamlit_authenticator as stauth
-
-from yaml.loader import SafeLoader
-from src.visualization.network_graph import (
-    build_network_graph
-)
-
-
-import streamlit as st
-import sys
-import os
 
 # =====================================================
 # PATH FIX
@@ -43,8 +28,72 @@ import streamlit_authenticator as stauth
 
 from yaml.loader import SafeLoader
 
+# =====================================================
+# SCORING
+# =====================================================
+
+from src.scoring.advanced_scoring import (
+    calculate_advanced_scores
+)
+
+# =====================================================
+# NETWORK
+# =====================================================
+
 from src.visualization.network_graph import (
     build_network_graph
+)
+
+# =====================================================
+# INTELLIGENCE
+# =====================================================
+
+from src.intelligence.deal_engine import (
+    top_acquisition_targets,
+    top_partnership_targets,
+    hidden_champions
+)
+
+from src.profiling.recommendation_engine import (
+    top_strategic_companies
+)
+
+from src.profiling.executive_summary import (
+    generate_executive_summary
+)
+
+from src.profiling.chat_analyst import (
+    ask_ai_analyst
+)
+
+# =====================================================
+# REPORTING
+# =====================================================
+
+from src.reporting.pdf_report import (
+    generate_executive_pdf
+)
+
+# =====================================================
+# CRM
+# =====================================================
+
+from src.crm.crm_engine import (
+    save_crm
+)
+
+from src.crm.watchlist_engine import (
+    load_watchlist,
+    add_to_watchlist
+)
+
+# =====================================================
+# PAGE CONFIG
+# =====================================================
+
+st.set_page_config(
+    page_title="WindEurope Intelligence",
+    layout="wide"
 )
 
 # =====================================================
@@ -297,15 +346,61 @@ tab1, tab2, tab3, tab4, tab5, tab6, tab7 = st.tabs([
 ])
 
 # =====================================================
-# TAB 1
+# TAB 1 — DASHBOARD
 # =====================================================
 
 with tab1:
 
-    render_dashboard(df)
+    st.subheader("📊 Executive Dashboard")
+
+    col1, col2, col3, col4 = st.columns(4)
+
+    col1.metric(
+        "Companies",
+        len(df)
+    )
+
+    col2.metric(
+        "Countries",
+        df["country"].nunique()
+    )
+
+    col3.metric(
+        "Elite",
+        len(
+            df[
+                df["strategic_category_v2"]
+                == "ELITE"
+            ]
+        )
+    )
+
+    col4.metric(
+        "Strategic",
+        len(
+            df[
+                df["strategic_category_v2"]
+                == "STRATEGIC"
+            ]
+        )
+    )
+
+    st.subheader(
+        "🌍 Country Distribution"
+    )
+
+    country_chart = px.histogram(
+        df,
+        x="country"
+    )
+
+    st.plotly_chart(
+        country_chart,
+        width="stretch"
+    )
 
 # =====================================================
-# TAB 2
+# TAB 2 — INTELLIGENCE
 # =====================================================
 
 with tab2:
@@ -380,7 +475,7 @@ with tab2:
                 st.error(str(e))
 
 # =====================================================
-# TAB 3
+# TAB 3 — AI ANALYST
 # =====================================================
 
 with tab3:
@@ -409,7 +504,7 @@ with tab3:
             st.error(str(e))
 
 # =====================================================
-# TAB 4
+# TAB 4 — CRM
 # =====================================================
 
 with tab4:
@@ -463,35 +558,15 @@ with tab5:
 
     st.write("ROWS:", len(df))
 
-    st.write("COLUMNS:")
-    st.write(df.columns.tolist())
-
-    st.write("DATA SAMPLE:")
-    st.dataframe(df.head())
-
     if st.button("Generate Network"):
 
         try:
-
-            st.write("STARTING GRAPH")
 
             small_df = df.head(50)
 
             html_data = build_network_graph(
                 small_df
             )
-
-            st.write("GRAPH BUILT")
-
-            st.success("GRAPH GENERATED")
-
-            st.write("HTML TYPE:")
-            st.write(type(html_data))
-
-            st.write("HTML LENGTH:")
-            st.write(len(html_data))
-
-            st.code(html_data[:1000])
 
             st.components.v1.html(
                 html_data,
@@ -502,8 +577,9 @@ with tab5:
         except Exception as e:
 
             st.error(str(e))
+
 # =====================================================
-# TAB 6
+# TAB 6 — DEAL INTELLIGENCE
 # =====================================================
 
 with tab6:
@@ -585,7 +661,7 @@ with tab6:
     )
 
 # =====================================================
-# TAB 7
+# TAB 7 — WATCHLIST
 # =====================================================
 
 with tab7:
