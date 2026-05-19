@@ -8,10 +8,10 @@ import streamlit.components.v1 as components
 import streamlit_authenticator as stauth
 
 from yaml.loader import SafeLoader
-from src.visualization.network_graph import build_network_graph
-from pages.dashboard_page import (
-    render_dashboard
+from src.visualization.network_graph import (
+    build_network_graph
 )
+
 
 # =====================================================
 # PATH FIX
