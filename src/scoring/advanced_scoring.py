@@ -8,7 +8,11 @@ import pandas as pd
 def safe_col(df, col, default=0):
 
     if col in df.columns:
-        return df[col].fillna(default)
+
+        return pd.to_numeric(
+            df[col],
+            errors="coerce"
+        ).fillna(default)
 
     return pd.Series(
         [default] * len(df)
@@ -20,6 +24,40 @@ def safe_col(df, col, default=0):
 # =====================================================
 
 def calculate_advanced_scores(df):
+
+    # =====================================================
+    # NUMERIC NORMALIZATION
+    # =====================================================
+
+    score_columns = [
+
+        "innovation_score_v2",
+        "digital_score",
+        "employee_score",
+        "growth",
+        "offshore_score",
+        "floating_score",
+        "supply_chain_score",
+        "potencial_offshore",
+        "potencial_floating",
+        "potencial_epc",
+        "innovacion",
+        "digitalizacion",
+        "crecimiento",
+        "market_presence"
+
+    ]
+
+    for col in score_columns:
+
+        if col not in df.columns:
+
+            df[col] = 0
+
+        df[col] = pd.to_numeric(
+            df[col],
+            errors="coerce"
+        ).fillna(0)
 
     # =================================================
     # OFFSHORE
