@@ -28,8 +28,11 @@ def build_network_graph(df):
     net = Network(
 
         height="900px",
+
         width="100%",
+
         bgcolor="#111111",
+
         font_color="white"
 
     )
@@ -37,7 +40,7 @@ def build_network_graph(df):
     G = nx.Graph()
 
     # =================================================
-    # ADD NODES
+    # NODES
     # =================================================
 
     for _, row in df.iterrows():
@@ -57,16 +60,12 @@ def build_network_graph(df):
         )
 
         offshore = safe_bool(
-            row.get("offshore", False)
+            row.get("offshore")
         )
 
         floating = safe_bool(
-            row.get("floating_wind", False)
+            row.get("floating_wind")
         )
-
-        # =============================================
-        # COLOR LOGIC
-        # =============================================
 
         color = "#4CAF50"
 
@@ -86,29 +85,27 @@ def build_network_graph(df):
 
             color = "#2196F3"
 
-        # =============================================
-        # ADD NODE
-        # =============================================
-
         G.add_node(
 
             company,
 
-            title=f"""
-Company: {company}
-Strategic: {strategic}
-Offshore: {offshore}
-Floating: {floating}
-""",
+            label=company,
 
             color=color,
 
-            size=20
+            size=20,
+
+            title=f"""
+            Company: {company}
+            Strategic: {strategic}
+            Offshore: {offshore}
+            Floating: {floating}
+            """
 
         )
 
     # =================================================
-    # RELATIONSHIPS
+    # EDGES
     # =================================================
 
     companies = df.to_dict("records")
@@ -122,10 +119,6 @@ Floating: {floating}
 
             score = 0
 
-            # =========================================
-            # SAME SEGMENT
-            # =========================================
-
             if str(
                 c1.get("segmento", "")
             ) == str(
@@ -133,10 +126,6 @@ Floating: {floating}
             ):
 
                 score += 1
-
-            # =========================================
-            # OFFSHORE
-            # =========================================
 
             if safe_bool(
                 c1.get("offshore")
@@ -146,10 +135,6 @@ Floating: {floating}
 
                 score += 1
 
-            # =========================================
-            # FLOATING
-            # =========================================
-
             if safe_bool(
                 c1.get("floating_wind")
             ) and safe_bool(
@@ -157,22 +142,6 @@ Floating: {floating}
             ):
 
                 score += 2
-
-            # =========================================
-            # EPC
-            # =========================================
-
-            if safe_bool(
-                c1.get("epc")
-            ) and safe_bool(
-                c2.get("epc")
-            ):
-
-                score += 1
-
-            # =========================================
-            # EDGE
-            # =========================================
 
             if score >= 2:
 
@@ -187,7 +156,7 @@ Floating: {floating}
                 )
 
     # =================================================
-    # LOAD NETWORK
+    # LOAD NX
     # =================================================
 
     net.from_nx(G)
@@ -195,13 +164,7 @@ Floating: {floating}
     net.force_atlas_2based()
 
     # =================================================
-    # SAVE
+    # RETURN HTML DIRECTLY
     # =================================================
 
-    output_path = (
-        "dashboard/network_graph.html"
-    )
-
-    net.save_graph(output_path)
-
-    return output_path
+    return net.generate_html()
