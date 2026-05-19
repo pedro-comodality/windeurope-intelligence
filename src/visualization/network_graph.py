@@ -1,22 +1,5 @@
 import networkx as nx
-
 from pyvis.network import Network
-
-
-# =====================================================
-# SAFE BOOL
-# =====================================================
-
-def safe_bool(value):
-
-    return str(value).lower() in [
-
-        "true",
-        "1",
-        "yes",
-        "y"
-
-    ]
 
 
 # =====================================================
@@ -26,86 +9,70 @@ def safe_bool(value):
 def build_network_graph(df):
 
     net = Network(
-
-        height="900px",
-
+        height="800px",
         width="100%",
-
-        bgcolor="#111111",
-
-        font_color="white"
-
+        bgcolor="#0E1117",
+        font_color="white",
+        notebook=False
     )
 
-    G = nx.Graph()
+    # physics
+    net.barnes_hut()
 
     # =================================================
-    # NODES
+    # ADD NODES
     # =================================================
 
     for _, row in df.iterrows():
 
         company = str(
-            row.get("company", "")
+            row.get("company", "Unknown")
         )
-
-        if not company:
-            continue
 
         strategic = str(
             row.get(
                 "strategic_category_v2",
-                ""
+                "NORMAL"
             )
         )
 
-        offshore = safe_bool(
-            row.get("offshore")
+        offshore = bool(
+            row.get("offshore", False)
         )
 
-        floating = safe_bool(
-            row.get("floating_wind")
+        floating = bool(
+            row.get("floating_wind", False)
         )
+
+        # =============================================
+        # COLOR LOGIC
+        # =============================================
 
         color = "#4CAF50"
 
         if strategic == "ELITE":
-
-            color = "#FF5252"
-
-        elif strategic == "STRATEGIC":
-
             color = "#FF9800"
 
         elif floating:
-
             color = "#00BCD4"
 
         elif offshore:
-
             color = "#2196F3"
 
-        G.add_node(
-
+        net.add_node(
             company,
-
             label=company,
-
             color=color,
-
-            size=20,
-
             title=f"""
-            Company: {company}
-            Strategic: {strategic}
-            Offshore: {offshore}
+            <b>{company}</b><br>
+            Strategic: {strategic}<br>
+            Offshore: {offshore}<br>
             Floating: {floating}
             """
-
         )
 
     # =================================================
-    # EDGES
+    # RELATIONSHIPS
     # =================================================
 
     companies = df.to_dict("records")
@@ -119,48 +86,33 @@ def build_network_graph(df):
 
             score = 0
 
-            if str(
-                c1.get("segmento", "")
-            ) == str(
-                c2.get("segmento", "")
-            ):
-
+            # same segment
+            if c1.get("segmento") == c2.get("segmento"):
                 score += 1
 
-            if safe_bool(
-                c1.get("offshore")
-            ) and safe_bool(
-                c2.get("offshore")
-            ):
-
+            # offshore
+            if c1.get("offshore") and c2.get("offshore"):
                 score += 1
 
-            if safe_bool(
-                c1.get("floating_wind")
-            ) and safe_bool(
-                c2.get("floating_wind")
-            ):
-
+            # floating
+            if c1.get("floating_wind") and c2.get("floating_wind"):
                 score += 2
 
+            # epc
+            if c1.get("epc") and c2.get("epc"):
+                score += 1
+
+            # threshold
             if score >= 2:
 
-                G.add_edge(
-
+                net.add_edge(
                     str(c1.get("company")),
-
                     str(c2.get("company")),
-
                     value=score
-
                 )
 
     # =================================================
-    # LOAD NX
+    # RETURN HTML
     # =================================================
-
-    net.from_nx(G)
-
-    net.force_atlas_2based()
 
     return net.generate_html()

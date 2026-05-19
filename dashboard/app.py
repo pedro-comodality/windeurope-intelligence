@@ -8,7 +8,7 @@ import streamlit.components.v1 as components
 import streamlit_authenticator as stauth
 
 from yaml.loader import SafeLoader
-
+from src.visualization.network_graph import build_network_graph
 from pages.dashboard_page import (
     render_dashboard
 )
@@ -491,20 +491,23 @@ with tab4:
 
 with tab5:
 
-    st.subheader(
-        "🌐 Ecosystem Network"
-    )
+    st.subheader("🌐 Ecosystem Network")
 
-    if st.button(
-        "Generate Network"
-    ):
+    if st.button("Generate Network"):
 
-        build_network_graph(df)
+        try:
 
-        st.iframe(
-            "network_graph.html",
-            height=900
-        )
+            html_data = build_network_graph(df)
+
+            st.components.v1.html(
+                html_data,
+                height=850,
+                scrolling=True
+            )
+
+        except Exception as e:
+
+            st.error(str(e))
 # =====================================================
 # TAB 6
 # =====================================================
