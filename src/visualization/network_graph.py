@@ -1,4 +1,5 @@
 from pyvis.network import Network
+import pandas as pd
 
 
 # =====================================================
@@ -7,13 +8,60 @@ from pyvis.network import Network
 
 def build_network_graph(df):
 
+    # =================================================
+    # SAFE COPY
+    # =================================================
+
+    df = df.copy()
+
+    # =================================================
+    # SAFE COLUMN
+    # =================================================
+
+    if "final_strategic_score" not in df.columns:
+
+        df["final_strategic_score"] = 50
+
+    # =================================================
+    # SAFE NUMERIC
+    # =================================================
+
+    df["final_strategic_score"] = pd.to_numeric(
+
+        df["final_strategic_score"],
+
+        errors="coerce"
+
+    ).fillna(50)
+
+    # =================================================
+    # SORT
+    # =================================================
+
+    df = df.sort_values(
+
+        by="final_strategic_score",
+
+        ascending=False
+
+    ).head(50)
+
+    # =================================================
+    # NETWORK
+    # =================================================
+
     net = Network(
 
         height="900px",
+
         width="100%",
+
         bgcolor="#050B1A",
+
         font_color="white",
+
         notebook=False,
+
         directed=False
 
     )
@@ -23,12 +71,6 @@ def build_network_graph(df):
     # =================================================
 
     net.toggle_physics(False)
-
-    # =================================================
-    # LIMIT DATA
-    # =================================================
-
-    df = df.head(50)
 
     # =================================================
     # ADD NODES
@@ -41,12 +83,10 @@ def build_network_graph(df):
         )
 
         strategic_score = float(
-
             row.get(
                 "final_strategic_score",
                 50
             )
-
         )
 
         offshore = str(
@@ -83,7 +123,7 @@ def build_network_graph(df):
             color = "#2196F3"
 
         # =============================================
-        # NODE SIZE
+        # SIZE
         # =============================================
 
         size = max(
@@ -92,7 +132,7 @@ def build_network_graph(df):
         )
 
         # =============================================
-        # ADD NODE
+        # NODE
         # =============================================
 
         net.add_node(
@@ -186,7 +226,7 @@ def build_network_graph(df):
                 score += 1
 
             # =========================================
-            # CONNECTION THRESHOLD
+            # THRESHOLD
             # =========================================
 
             if score >= 4:
@@ -218,7 +258,7 @@ def build_network_graph(df):
                     connections += 1
 
     # =================================================
-    # FINAL OPTIONS
+    # OPTIONS
     # =================================================
 
     net.set_options("""
