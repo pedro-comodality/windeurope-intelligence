@@ -8,6 +8,9 @@ import streamlit.components.v1 as components
 import streamlit_authenticator as stauth
 
 from yaml.loader import SafeLoader
+from dashboard.pages.dashboard_page import (
+    render_dashboard
+)
 
 # =====================================================
 # PATH FIX
@@ -23,10 +26,10 @@ ROOT_DIR = os.path.abspath(
 if ROOT_DIR not in sys.path:
     sys.path.append(ROOT_DIR)
 
+
 # =====================================================
 # IMPORTS
 # =====================================================
-
 from src.crm.watchlist_engine import (
     load_watchlist,
     add_to_watchlist
@@ -37,43 +40,6 @@ from src.intelligence.deal_engine import (
     top_partnership_targets,
     hidden_champions
 )
-
-from src.reporting.pdf_report import (
-generate_executive_pdf
-)
-
-from src.profiling.executive_summary import (
-generate_executive_summary
-)
-
-from src.visualization.network_graph import (
-build_network_graph
-)
-
-from src.profiling.recommendation_engine import (
-top_strategic_companies
-)
-
-from src.profiling.chat_analyst import (
-ask_ai_analyst
-)
-
-from src.crm.crm_engine import (
-save_crm
-)
-
-from src.sales.meeting_prep import (
-generate_meeting_prep
-)
-
-from src.scoring.advanced_scoring import (
-calculate_advanced_scores
-)
-
-# =====================================================
-# IMPORTS
-# =====================================================
-
 from src.reporting.pdf_report import (
     generate_executive_pdf
 )
@@ -201,20 +167,31 @@ def load_data():
 
 df = load_data()
 # =====================================================
-# DATA TYPE NORMALIZATION
+# DATA CLEANING & NORMALIZATION
 # =====================================================
 
-# limpia columnas object mezcladas
-for col in df.columns:
-
-    # convierte booleanos a texto
-    if df[col].dtype == "object":
-
-        df[col] = df[col].astype(str)
-
-# convierte NaN a vacío
+# reemplaza NaN
 df = df.fillna("")
 
+# convierte TODAS las columnas problemáticas
+for col in df.columns:
+
+    try:
+
+        # convierte bool a string
+        if df[col].dtype == "bool":
+
+            df[col] = df[col].astype(str)
+
+        # convierte object mezclados
+        elif df[col].dtype == "object":
+
+            df[col] = df[col].astype(str)
+
+    except Exception:
+
+        pass
+
 # =====================================================
 # CLEAN COUNTRY COLUMN
 # =====================================================
@@ -260,60 +237,6 @@ if "country" in df.columns:
         .str.strip()
     )
 
-    df = df[
-        df["country"] != ""
-    ]
-# =====================================================
-# CLEAN COUNTRY COLUMN
-# =====================================================
-
-if "country" in df.columns:
-
-    df["country"] = (
-
-        df["country"]
-
-        .astype(str)
-
-        # elimina Powered by TCPDF
-        .str.replace(
-            r"Powered by TCPDF.*",
-            "",
-            regex=True
-        )
-
-        # elimina patrones tipo 123 / 199
-        .str.replace(
-            r"\d+\s*/\s*\d+",
-            "",
-            regex=True
-        )
-
-        # elimina números sueltos
-        .str.replace(
-            r"\d+",
-            "",
-            regex=True
-        )
-
-        # elimina símbolos extra
-        .str.replace(
-            r"[/()-]",
-            "",
-            regex=True
-        )
-
-        # limpia espacios múltiples
-        .str.replace(
-            r"\s+",
-            " ",
-            regex=True
-        )
-
-        .str.strip()
-    )
-
-    # elimina vacíos
     df = df[
         df["country"] != ""
     ]
@@ -393,53 +316,7 @@ tab1, tab2, tab3, tab4, tab5, tab6, tab7 = st.tabs([
 
 with tab1:
 
-    st.subheader("📊 Executive Dashboard")
-
-    col1, col2, col3, col4 = st.columns(4)
-
-    col1.metric(
-        "Companies",
-        len(df)
-    )
-
-    col2.metric(
-        "Countries",
-        df["country"].nunique()
-    )
-
-    col3.metric(
-        "Elite",
-        len(
-            df[
-                df["strategic_category_v2"]
-                == "ELITE"
-            ]
-        )
-    )
-
-    col4.metric(
-        "Strategic",
-        len(
-            df[
-                df["strategic_category_v2"]
-                == "STRATEGIC"
-            ]
-        )
-    )
-
-    st.subheader(
-        "🌍 Country Distribution"
-    )
-
-    country_chart = px.histogram(
-        df,
-        x="country"
-    )
-
-    st.plotly_chart(
-        country_chart,
-        width="stretch"
-    )
+    render_dashboard(df)
 
 # =====================================================
 # TAB 2

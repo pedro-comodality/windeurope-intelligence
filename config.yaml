@@ -7,7 +7,7 @@ credentials:
 
 cookie:
   expiry_days: 30
-  key: random_signature_key
+  key: windeurope_2026_secure_enterprise_platform_key_987654321
   name: windeurope_cookie
 
 preauthorized:
