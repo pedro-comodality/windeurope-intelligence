@@ -493,15 +493,33 @@ with tab5:
 
     st.subheader("🌐 Ecosystem Network")
 
+    st.write("ROWS:", len(df))
+
+    st.write("COLUMNS:")
+    st.write(df.columns.tolist())
+
+    st.write("DATA SAMPLE:")
+    st.dataframe(df.head())
+
     if st.button("Generate Network"):
 
         try:
 
             html_data = build_network_graph(df)
 
+            st.success("GRAPH GENERATED")
+
+            st.write("HTML TYPE:")
+            st.write(type(html_data))
+
+            st.write("HTML LENGTH:")
+            st.write(len(html_data))
+
+            st.code(html_data[:1000])
+
             st.components.v1.html(
                 html_data,
-                height=850,
+                height=900,
                 scrolling=True
             )
 
