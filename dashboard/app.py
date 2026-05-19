@@ -1,4 +1,3 @@
-```python
 import streamlit as st
 import sys
 import os
@@ -784,4 +783,3 @@ with tab8:
         st.json(
             top_target.to_dict()
         )
-```
