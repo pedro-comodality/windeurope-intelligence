@@ -299,3 +299,91 @@ def top_logistics_targets(df):
         ascending=False
 
     ).head(30)
+# =====================================================
+# LOGISTICS TARGETS
+# =====================================================
+
+def top_logistics_targets(df):
+
+    logistics_df = df.copy()
+
+    required_columns = [
+
+        "offshore_score",
+        "floating_score",
+        "epc_score",
+        "final_strategic_score"
+
+    ]
+
+    for col in required_columns:
+
+        if col not in logistics_df.columns:
+
+            logistics_df[col] = 0
+
+    logistics_df["offshore_score"] = safe_numeric(
+        logistics_df["offshore_score"]
+    )
+
+    logistics_df["floating_score"] = safe_numeric(
+        logistics_df["floating_score"]
+    )
+
+    logistics_df["epc_score"] = safe_numeric(
+        logistics_df["epc_score"]
+    )
+
+    logistics_df["final_strategic_score"] = safe_numeric(
+        logistics_df["final_strategic_score"]
+    )
+
+    # =================================================
+    # LOGISTICS OPPORTUNITY SCORE
+    # =================================================
+
+    logistics_df["logistics_opportunity_score"] = (
+
+        logistics_df["offshore_score"] * 0.35 +
+
+        logistics_df["floating_score"] * 0.30 +
+
+        logistics_df["epc_score"] * 0.20 +
+
+        logistics_df["final_strategic_score"] * 0.15
+
+    ).round(2)
+
+    # =================================================
+    # PRIORITY
+    # =================================================
+
+    def classify(score):
+
+        if score >= 80:
+            return "MEGA TARGET"
+
+        elif score >= 65:
+            return "HIGH PRIORITY"
+
+        elif score >= 50:
+            return "GOOD TARGET"
+
+        else:
+            return "LOW PRIORITY"
+
+    logistics_df["logistics_priority"] = (
+
+        logistics_df[
+            "logistics_opportunity_score"
+        ].apply(classify)
+
+    )
+
+    return logistics_df.sort_values(
+
+        by="logistics_opportunity_score",
+
+        ascending=False
+
+    ).head(50)
