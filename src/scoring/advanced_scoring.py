@@ -27,7 +27,7 @@ def safe_col(df, col, default=0):
 def calculate_advanced_scores(df):
 
     # =================================================
-    # SAFE REQUIRED COLUMNS
+    # REQUIRED COLUMNS
     # =================================================
 
     required_columns = [
@@ -81,15 +81,20 @@ def calculate_advanced_scores(df):
     )
 
     # =================================================
-    # ASSIGN COLUMNS
+    # ASSIGN SCORES
     # =================================================
 
-    df["offshore_score"] = offshore_score
-    df["floating_score"] = floating_score
-    df["epc_score"] = epc_score
-    df["innovation_score_v2"] = innovation_score
-    df["digital_score"] = digital_score
-    df["influence_score"] = influence_score
+    df["offshore_score"] = offshore_score.astype(float)
+
+    df["floating_score"] = floating_score.astype(float)
+
+    df["epc_score"] = epc_score.astype(float)
+
+    df["innovation_score_v2"] = innovation_score.astype(float)
+
+    df["digital_score"] = digital_score.astype(float)
+
+    df["influence_score"] = influence_score.astype(float)
 
     # =================================================
     # ECOSYSTEM
@@ -105,7 +110,7 @@ def calculate_advanced_scores(df):
 
     ) / 3
 
-    df["ecosystem_score"] = ecosystem_score
+    df["ecosystem_score"] = ecosystem_score.astype(float)
 
     # =================================================
     # PARTNERSHIP
@@ -121,7 +126,7 @@ def calculate_advanced_scores(df):
 
     ) / 3
 
-    df["partnership_score"] = partnership_score
+    df["partnership_score"] = partnership_score.astype(float)
 
     # =================================================
     # ACQUISITION
@@ -135,7 +140,7 @@ def calculate_advanced_scores(df):
 
     ) / 2
 
-    df["acquisition_score"] = acquisition_score
+    df["acquisition_score"] = acquisition_score.astype(float)
 
     # =================================================
     # FINAL SCORE
@@ -195,6 +200,24 @@ def calculate_advanced_scores(df):
     df["strategic_category_v2"] = (
         df["final_strategic_score"]
         .apply(categorize)
+        .astype(str)
     )
+
+    # =================================================
+    # FINAL NORMALIZATION FOR STREAMLIT
+    # =================================================
+
+    for col in df.columns:
+
+        try:
+
+            # evita mixed types
+            if df[col].dtype == "object":
+
+                df[col] = df[col].astype(str)
+
+        except Exception:
+
+            pass
 
     return df

@@ -245,6 +245,22 @@ if "country" in df.columns:
 # =====================================================
 
 df = calculate_advanced_scores(df)
+# =====================================================
+# FINAL DATAFRAME NORMALIZATION
+# =====================================================
+
+for col in df.columns:
+
+    try:
+
+        # convierte listas/problemáticos a string
+        if df[col].dtype == "object":
+
+            df[col] = df[col].astype(str)
+
+    except Exception:
+
+        pass
 
 # =====================================================
 # SIDEBAR
