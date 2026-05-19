@@ -15,7 +15,8 @@ def safe_col(df, col, default=0):
         ).fillna(default)
 
     return pd.Series(
-        [default] * len(df)
+        [default] * len(df),
+        dtype="float"
     )
 
 
@@ -25,19 +26,12 @@ def safe_col(df, col, default=0):
 
 def calculate_advanced_scores(df):
 
-    # =====================================================
-    # NUMERIC NORMALIZATION
-    # =====================================================
+    # =================================================
+    # REQUIRED COLUMNS
+    # =================================================
 
-    score_columns = [
+    required_columns = [
 
-        "innovation_score_v2",
-        "digital_score",
-        "employee_score",
-        "growth",
-        "offshore_score",
-        "floating_score",
-        "supply_chain_score",
         "potencial_offshore",
         "potencial_floating",
         "potencial_epc",
@@ -48,16 +42,28 @@ def calculate_advanced_scores(df):
 
     ]
 
-    for col in score_columns:
+    for col in required_columns:
 
         if col not in df.columns:
 
             df[col] = 0
 
-        df[col] = pd.to_numeric(
-            df[col],
-            errors="coerce"
-        ).fillna(0)
+    # =================================================
+    # NUMERIC CLEANING
+    # =================================================
+
+    for col in df.columns:
+
+        try:
+
+            df[col] = pd.to_numeric(
+                df[col],
+                errors="ignore"
+            )
+
+        except Exception:
+
+            pass
 
     # =================================================
     # OFFSHORE
@@ -105,11 +111,11 @@ def calculate_advanced_scores(df):
 
     df["ecosystem_score"] = (
 
-        df["offshore_score"]
+        safe_col(df, "offshore_score")
 
-        + df["floating_score"]
+        + safe_col(df, "floating_score")
 
-        + df["epc_score"]
+        + safe_col(df, "epc_score")
 
     ) / 3
 
@@ -119,11 +125,11 @@ def calculate_advanced_scores(df):
 
     df["partnership_score"] = (
 
-        df["innovation_score_v2"]
+        safe_col(df, "innovation_score_v2")
 
-        + df["digital_score"]
+        + safe_col(df, "digital_score")
 
-        + df["ecosystem_score"]
+        + safe_col(df, "ecosystem_score")
 
     ) / 3
 
@@ -137,7 +143,7 @@ def calculate_advanced_scores(df):
             safe_col(df, "crecimiento") * 20
         )
 
-        + df["innovation_score_v2"]
+        + safe_col(df, "innovation_score_v2")
 
     ) / 2
 
@@ -155,19 +161,19 @@ def calculate_advanced_scores(df):
 
     df["final_strategic_score"] = (
 
-        df["offshore_score"] * 0.20 +
+        safe_col(df, "offshore_score") * 0.20 +
 
-        df["floating_score"] * 0.15 +
+        safe_col(df, "floating_score") * 0.15 +
 
-        df["epc_score"] * 0.15 +
+        safe_col(df, "epc_score") * 0.15 +
 
-        df["innovation_score_v2"] * 0.15 +
+        safe_col(df, "innovation_score_v2") * 0.15 +
 
-        df["digital_score"] * 0.10 +
+        safe_col(df, "digital_score") * 0.10 +
 
-        df["partnership_score"] * 0.15 +
+        safe_col(df, "partnership_score") * 0.15 +
 
-        df["influence_score"] * 0.10
+        safe_col(df, "influence_score") * 0.10
 
     )
 
