@@ -201,6 +201,69 @@ def load_data():
 
 df = load_data()
 # =====================================================
+# DATA TYPE NORMALIZATION
+# =====================================================
+
+# limpia columnas object mezcladas
+for col in df.columns:
+
+    # convierte booleanos a texto
+    if df[col].dtype == "object":
+
+        df[col] = df[col].astype(str)
+
+# convierte NaN a vacío
+df = df.fillna("")
+
+# =====================================================
+# CLEAN COUNTRY COLUMN
+# =====================================================
+
+if "country" in df.columns:
+
+    df["country"] = (
+
+        df["country"]
+
+        .astype(str)
+
+        .str.replace(
+            r"Powered by TCPDF.*",
+            "",
+            regex=True
+        )
+
+        .str.replace(
+            r"\d+\s*/\s*\d+",
+            "",
+            regex=True
+        )
+
+        .str.replace(
+            r"\d+",
+            "",
+            regex=True
+        )
+
+        .str.replace(
+            r"[/()-]",
+            "",
+            regex=True
+        )
+
+        .str.replace(
+            r"\s+",
+            " ",
+            regex=True
+        )
+
+        .str.strip()
+    )
+
+    df = df[
+        df["country"] != ""
+    ]
+# =====================================================
 # CLEAN COUNTRY COLUMN
 # =====================================================
 
@@ -375,7 +438,7 @@ with tab1:
 
     st.plotly_chart(
         country_chart,
-        use_container_width=True
+        width="stretch"
     )
 
 # =====================================================
@@ -392,7 +455,7 @@ with tab2:
 
     st.dataframe(
         strategic_df.head(25),
-        use_container_width=True
+        width="stretch"
     )
 
     company_selected = st.selectbox(
@@ -568,7 +631,7 @@ with tab6:
             ]
         ],
 
-        use_container_width=True
+        width="stretch"
     )
 
     # =================================================
@@ -592,7 +655,7 @@ with tab6:
             ]
         ],
 
-        use_container_width=True
+        width="stretch"
     )
 
     # =================================================
@@ -616,7 +679,7 @@ with tab6:
             ]
         ],
 
-        use_container_width=True
+        width="stretch"
     )
 # =====================================================
 # TAB 7 — WATCHLIST
@@ -668,5 +731,5 @@ with tab7:
 
     st.dataframe(
         watchlist_df,
-        use_container_width=True
+        width="stretch"
     )
