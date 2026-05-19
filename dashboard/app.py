@@ -501,15 +501,7 @@ with tab5:
 
         html_data = build_network_graph(df)
 
-        st.components.v1.html(
-
-            html_data,
-
-            height=900,
-
-            scrolling=True
-
-        )
+        st.html(html_data)
     
 # =====================================================
 # TAB 6

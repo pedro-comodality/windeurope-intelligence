@@ -163,8 +163,4 @@ def build_network_graph(df):
 
     net.force_atlas_2based()
 
-    # =================================================
-    # RETURN HTML DIRECTLY
-    # =================================================
-
     return net.generate_html()
