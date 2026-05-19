@@ -170,13 +170,48 @@ df = load_data()
 # NORMALIZATION
 # =====================================================
 
+# fillna
+df = df.fillna("")
+
+# =====================================================
+# FIX OBJECT / BOOL / ARROW ISSUES
+# =====================================================
+
 for col in df.columns:
 
-    if df[col].dtype == "object":
+    try:
 
-        df[col] = df[col].astype(str)
+        # bool → string
+        if df[col].dtype == "bool":
 
-df = df.fillna("")
+            df[col] = (
+                df[col]
+                .astype(str)
+            )
+
+        # mixed object columns
+        elif df[col].dtype == "object":
+
+            df[col] = (
+                df[col]
+                .astype(str)
+            )
+
+    except:
+
+        df[col] = (
+            df[col]
+            .astype(str)
+        )
+
+# =====================================================
+# REMOVE DUPLICATED COLUMNS
+# =====================================================
+
+df = df.loc[
+    :,
+    ~df.columns.duplicated()
+]
 
 # =====================================================
 # CLEAN COUNTRY
@@ -366,7 +401,7 @@ with tab1:
 
     st.plotly_chart(
         country_chart,
-        use_container_width=True
+        width="stretch"
     )
 
 # =====================================================
@@ -383,7 +418,7 @@ with tab2:
 
     st.dataframe(
         strategic_df.head(25),
-        use_container_width=True
+        width="stretch"
     )
 
     company_selected = st.selectbox(
@@ -530,7 +565,7 @@ with tab6:
             ]
         ],
 
-        use_container_width=True
+        width="stretch"
     )
 
     st.markdown(
@@ -550,7 +585,7 @@ with tab6:
             ]
         ],
 
-        use_container_width=True
+        width="stretch"
     )
 
     st.markdown(
@@ -570,7 +605,7 @@ with tab6:
             ]
         ],
 
-        use_container_width=True
+        width="stretch"
     )
 
 # =====================================================
@@ -623,7 +658,7 @@ with tab7:
 
     st.dataframe(
         watchlist_df,
-        use_container_width=True
+        width="stretch"
     )
 
 # =====================================================
@@ -699,7 +734,7 @@ with tab8:
             ]
         ],
 
-        use_container_width=True
+        width="stretch"
     )
 
     # =================================================
