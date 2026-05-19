@@ -3,18 +3,14 @@ import os
 
 WATCHLIST_FILE = "data/crm/watchlist.csv"
 
-# =====================================================
-# INIT WATCHLIST
-# =====================================================
-
 def init_watchlist():
 
-    if not os.path.exists(WATCHLIST_FILE):
+    os.makedirs(
+        "data/crm",
+        exist_ok=True
+    )
 
-        os.makedirs(
-            "data/crm",
-            exist_ok=True
-        )
+    if not os.path.exists(WATCHLIST_FILE):
 
         df = pd.DataFrame(
             columns=[
@@ -30,10 +26,6 @@ def init_watchlist():
             index=False
         )
 
-# =====================================================
-# LOAD WATCHLIST
-# =====================================================
-
 def load_watchlist():
 
     init_watchlist()
@@ -41,10 +33,6 @@ def load_watchlist():
     return pd.read_csv(
         WATCHLIST_FILE
     )
-
-# =====================================================
-# ADD TO WATCHLIST
-# =====================================================
 
 def add_to_watchlist(
     company,
