@@ -499,10 +499,12 @@ with tab5:
         "Generate Network"
     ):
 
-        html_data = build_network_graph(df)
+        build_network_graph(df)
 
-        st.html(html_data)
-    
+        st.iframe(
+            "network_graph.html",
+            height=900
+        )
 # =====================================================
 # TAB 6
 # =====================================================
