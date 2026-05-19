@@ -1,5 +1,4 @@
 from pyvis.network import Network
-import pandas as pd
 
 
 # =====================================================
@@ -9,57 +8,10 @@ import pandas as pd
 def build_network_graph(df):
 
     # =================================================
-    # SAFE COPY
+    # SAFE LIMIT
     # =================================================
 
-    df = df.copy()
-
-    # =================================================
-    # DEBUG SAFE
-    # =================================================
-
-    df.columns = df.columns.astype(str)
-
-    # =================================================
-    # SAFE SCORE COLUMN
-    # =================================================
-
-    if "final_strategic_score" not in list(df.columns):
-
-        df["final_strategic_score"] = 50
-
-    # =================================================
-    # SAFE NUMERIC
-    # =================================================
-
-    try:
-
-        df["final_strategic_score"] = pd.to_numeric(
-
-            df["final_strategic_score"],
-
-            errors="coerce"
-
-        ).fillna(50)
-
-    except:
-
-        df["final_strategic_score"] = 50
-
-    # =================================================
-    # LIMIT DATA
-    # =================================================
-
-    try:
-
-        df = df.nlargest(
-            50,
-            "final_strategic_score"
-        )
-
-    except:
-
-        df = df.head(50)
+    df = df.head(50)
 
     # =================================================
     # NETWORK
@@ -97,12 +49,28 @@ def build_network_graph(df):
             row.get("company", "Unknown")
         )
 
-        strategic_score = float(
-            row.get(
-                "final_strategic_score",
-                50
+        # =============================================
+        # SAFE SCORE
+        # =============================================
+
+        try:
+
+            strategic_score = float(
+
+                row.get(
+                    "final_strategic_score",
+                    50
+                )
+
             )
-        )
+
+        except:
+
+            strategic_score = 50
+
+        # =============================================
+        # FLAGS
+        # =============================================
 
         offshore = str(
             row.get("offshore", "")
@@ -120,7 +88,7 @@ def build_network_graph(df):
         )
 
         # =============================================
-        # COLORS
+        # COLOR
         # =============================================
 
         color = "#4CAF50"
@@ -172,12 +140,10 @@ def build_network_graph(df):
         )
 
     # =================================================
-    # EDGES
+    # ADD EDGES
     # =================================================
 
     companies = df.to_dict("records")
-
-    added_edges = set()
 
     for i in range(len(companies)):
 
@@ -246,31 +212,19 @@ def build_network_graph(df):
 
             if score >= 4:
 
-                edge_id = tuple(sorted([
+                net.add_edge(
 
                     str(c1.get("company")),
 
-                    str(c2.get("company"))
+                    str(c2.get("company")),
 
-                ]))
+                    color="#FFB300",
 
-                if edge_id not in added_edges:
+                    width=2
 
-                    net.add_edge(
+                )
 
-                        str(c1.get("company")),
-
-                        str(c2.get("company")),
-
-                        color="#FFB300",
-
-                        width=1 + score
-
-                    )
-
-                    added_edges.add(edge_id)
-
-                    connections += 1
+                connections += 1
 
     # =================================================
     # OPTIONS
