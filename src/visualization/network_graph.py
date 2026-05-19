@@ -115,4 +115,10 @@ def build_network_graph(df):
     # RETURN HTML
     # =================================================
 
-    return net.generate_html()
+    html = net.generate_html()
+
+    print("HTML GENERATED")
+
+    print(len(html))
+
+    return html
