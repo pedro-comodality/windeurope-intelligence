@@ -2,61 +2,91 @@ import pandas as pd
 
 
 # =====================================================
-# TOP ACQUISITION TARGETS
+# SAFE NUMERIC
+# =====================================================
+
+def safe_numeric(series):
+
+    return pd.to_numeric(
+        series,
+        errors="coerce"
+    ).fillna(0)
+
+
+# =====================================================
+# ACQUISITION TARGETS
 # =====================================================
 
 def top_acquisition_targets(df):
 
     acquisition_df = df.copy()
 
+    # columnas seguras
+    if "growth_potential" not in acquisition_df.columns:
+        acquisition_df["growth_potential"] = 0
+
+    if "innovation_score_v2" not in acquisition_df.columns:
+        acquisition_df["innovation_score_v2"] = 0
+
+    if "final_strategic_score" not in acquisition_df.columns:
+        acquisition_df["final_strategic_score"] = 0
+
+    # numeric conversion
+    growth = safe_numeric(
+        acquisition_df["growth_potential"]
+    )
+
+    innovation = safe_numeric(
+        acquisition_df["innovation_score_v2"]
+    )
+
+    strategic = safe_numeric(
+        acquisition_df["final_strategic_score"]
+    )
+
+    # deal score
     acquisition_df["deal_score"] = (
 
-        acquisition_df["growth_potential"].fillna(0) * 0.30 +
+        growth * 0.30 +
 
-        acquisition_df["innovation_score_v2"].fillna(0) * 0.25 +
+        innovation * 0.25 +
 
-        acquisition_df["digital_score"].fillna(0) * 0.15 +
+        strategic * 0.45
 
-        acquisition_df["floating_score"].fillna(0) * 0.15 +
+    ).round(2)
 
-        acquisition_df["offshore_score"].fillna(0) * 0.15
-
-    )
-
-    acquisition_df = acquisition_df.sort_values(
-        "deal_score",
+    return acquisition_df.sort_values(
+        by="deal_score",
         ascending=False
-    )
-
-    return acquisition_df.head(25)
+    ).head(25)
 
 
 # =====================================================
-# TOP PARTNERSHIP TARGETS
+# PARTNERSHIP TARGETS
 # =====================================================
 
 def top_partnership_targets(df):
 
     partnership_df = df.copy()
 
-    partnership_df["partnership_rank"] = (
+    if "partnership_score" not in partnership_df.columns:
+        partnership_df["partnership_score"] = 0
 
-        partnership_df["partnership_score"].fillna(0) * 0.40 +
-
-        partnership_df["ecosystem_score"].fillna(0) * 0.30 +
-
-        partnership_df["epc_score"].fillna(0) * 0.15 +
-
-        partnership_df["digital_score"].fillna(0) * 0.15
-
+    partnership_df["partnership_score"] = safe_numeric(
+        partnership_df["partnership_score"]
     )
 
     partnership_df = partnership_df.sort_values(
-        "partnership_rank",
+        by="partnership_score",
         ascending=False
+    ).head(25)
+
+    partnership_df["partnership_rank"] = range(
+        1,
+        len(partnership_df) + 1
     )
 
-    return partnership_df.head(25)
+    return partnership_df
 
 
 # =====================================================
@@ -67,21 +97,18 @@ def hidden_champions(df):
 
     hidden_df = df.copy()
 
-    hidden_df = hidden_df[
+    if "final_strategic_score" not in hidden_df.columns:
+        hidden_df["final_strategic_score"] = 0
 
-        hidden_df["final_strategic_score"] > 60
-
-    ]
-
-    hidden_df = hidden_df[
-
-        hidden_df["lead_tier"] != "HOT"
-
-    ]
-
-    hidden_df = hidden_df.sort_values(
-        "final_strategic_score",
-        ascending=False
+    hidden_df["final_strategic_score"] = safe_numeric(
+        hidden_df["final_strategic_score"]
     )
 
-    return hidden_df.head(25)
+    hidden_df = hidden_df[
+        hidden_df["final_strategic_score"] >= 60
+    ]
+
+    return hidden_df.sort_values(
+        by="final_strategic_score",
+        ascending=False
+    ).head(25)
