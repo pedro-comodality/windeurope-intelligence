@@ -1,76 +1,32 @@
 from pyvis.network import Network
 
 
-# =====================================================
-# BUILD NETWORK GRAPH
-# =====================================================
-
 def build_network_graph(df):
 
-    # =================================================
-    # SAFE LIMIT
-    # =================================================
-
+    # LIMIT
     df = df.head(50)
-
-    # =================================================
-    # NETWORK
-    # =================================================
 
     net = Network(
 
         height="900px",
-
         width="100%",
-
         bgcolor="#050B1A",
-
         font_color="white",
-
-        notebook=False,
-
-        directed=False
+        notebook=False
 
     )
 
-    # =================================================
-    # DISABLE PHYSICS
-    # =================================================
-
+    # IMPORTANT
     net.toggle_physics(False)
 
-    # =================================================
-    # ADD NODES
-    # =================================================
-
+    # NODES
     for _, row in df.iterrows():
 
         company = str(
             row.get("company", "Unknown")
         )
 
-        # =============================================
-        # SAFE SCORE
-        # =============================================
-
-        try:
-
-            strategic_score = float(
-
-                row.get(
-                    "final_strategic_score",
-                    50
-                )
-
-            )
-
-        except:
-
-            strategic_score = 50
-
-        # =============================================
-        # FLAGS
-        # =============================================
+        color = "#4CAF50"
 
         offshore = str(
             row.get("offshore", "")
@@ -87,12 +43,6 @@ def build_network_graph(df):
             )
         )
 
-        # =============================================
-        # COLOR
-        # =============================================
-
-        color = "#4CAF50"
-
         if strategic == "ELITE":
 
             color = "#FF9800"
@@ -105,18 +55,20 @@ def build_network_graph(df):
 
             color = "#2196F3"
 
-        # =============================================
-        # SIZE
-        # =============================================
+        try:
 
-        size = max(
-            min(strategic_score / 4, 45),
-            12
-        )
+            size = float(
+                row.get(
+                    "final_strategic_score",
+                    50
+                )
+            ) / 4
 
-        # =============================================
-        # NODE
-        # =============================================
+        except:
+
+            size = 15
+
+        size = max(size, 12)
 
         net.add_node(
 
@@ -128,87 +80,46 @@ def build_network_graph(df):
 
             size=size,
 
-            borderWidth=1,
-
             title=f"""
-            <b>{company}</b><br>
-            Strategic Score: {strategic_score}<br>
-            Offshore: {offshore}<br>
-            Floating: {floating}
+            {company}
             """
 
         )
 
-    # =================================================
-    # ADD EDGES
-    # =================================================
-
+    # EDGES
     companies = df.to_dict("records")
 
     for i in range(len(companies)):
 
         c1 = companies[i]
 
-        connections = 0
+        added = 0
 
         for j in range(i + 1, len(companies)):
 
-            if connections >= 4:
+            if added >= 3:
                 break
 
             c2 = companies[j]
 
             score = 0
 
-            # same segment
-
-            if (
-                c1.get("segmento")
-                ==
-                c2.get("segmento")
-            ):
-
+            if c1.get("segmento") == c2.get("segmento"):
                 score += 2
 
-            # offshore
-
             if (
-                str(c1.get("offshore")).lower()
-                == "true"
+                str(c1.get("offshore")).lower() == "true"
                 and
-                str(c2.get("offshore")).lower()
-                == "true"
+                str(c2.get("offshore")).lower() == "true"
             ):
-
                 score += 2
 
-            # floating
-
             if (
-                str(c1.get("floating_wind")).lower()
-                == "true"
+                str(c1.get("floating_wind")).lower() == "true"
                 and
-                str(c2.get("floating_wind")).lower()
-                == "true"
+                str(c2.get("floating_wind")).lower() == "true"
             ):
-
                 score += 3
-
-            # epc
-
-            if (
-                str(c1.get("epc")).lower()
-                == "true"
-                and
-                str(c2.get("epc")).lower()
-                == "true"
-            ):
-
-                score += 1
-
-            # =========================================
-            # THRESHOLD
-            # =========================================
 
             if score >= 4:
 
@@ -224,28 +135,6 @@ def build_network_graph(df):
 
                 )
 
-                connections += 1
-
-    # =================================================
-    # OPTIONS
-    # =================================================
-
-    net.set_options("""
-    {
-      "nodes": {
-        "font": {
-          "size": 18
-        }
-      },
-      "edges": {
-        "smooth": false
-      },
-      "interaction": {
-        "hover": true,
-        "zoomView": true,
-        "dragView": true
-      }
-    }
-    """)
+                added += 1
 
     return net.generate_html()
