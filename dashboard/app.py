@@ -13,6 +13,10 @@ from src.visualization.network_graph import (
 )
 
 
+import streamlit as st
+import sys
+import os
+
 # =====================================================
 # PATH FIX
 # =====================================================
@@ -31,52 +35,16 @@ if ROOT_DIR not in sys.path:
 # IMPORTS
 # =====================================================
 
-from src.crm.watchlist_engine import (
-    load_watchlist,
-    add_to_watchlist
-)
+import yaml
+import pandas as pd
+import plotly.express as px
+import streamlit.components.v1 as components
+import streamlit_authenticator as stauth
 
-from src.intelligence.deal_engine import (
-    top_acquisition_targets,
-    top_partnership_targets,
-    hidden_champions
-)
-
-from src.reporting.pdf_report import (
-    generate_executive_pdf
-)
-
-from src.profiling.executive_summary import (
-    generate_executive_summary
-)
+from yaml.loader import SafeLoader
 
 from src.visualization.network_graph import (
     build_network_graph
-)
-
-from src.profiling.recommendation_engine import (
-    top_strategic_companies
-)
-
-from src.profiling.chat_analyst import (
-    ask_ai_analyst
-)
-
-from src.crm.crm_engine import (
-    save_crm
-)
-
-from src.scoring.advanced_scoring import (
-    calculate_advanced_scores
-)
-
-# =====================================================
-# PAGE CONFIG
-# =====================================================
-
-st.set_page_config(
-    page_title="WindEurope Intelligence",
-    layout="wide"
 )
 
 # =====================================================
