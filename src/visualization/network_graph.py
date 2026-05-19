@@ -15,10 +15,16 @@ def build_network_graph(df):
     df = df.copy()
 
     # =================================================
-    # SAFE COLUMN
+    # DEBUG SAFE
     # =================================================
 
-    if "final_strategic_score" not in df.columns:
+    df.columns = df.columns.astype(str)
+
+    # =================================================
+    # SAFE SCORE COLUMN
+    # =================================================
+
+    if "final_strategic_score" not in list(df.columns):
 
         df["final_strategic_score"] = 50
 
@@ -26,25 +32,34 @@ def build_network_graph(df):
     # SAFE NUMERIC
     # =================================================
 
-    df["final_strategic_score"] = pd.to_numeric(
+    try:
 
-        df["final_strategic_score"],
+        df["final_strategic_score"] = pd.to_numeric(
 
-        errors="coerce"
+            df["final_strategic_score"],
 
-    ).fillna(50)
+            errors="coerce"
+
+        ).fillna(50)
+
+    except:
+
+        df["final_strategic_score"] = 50
 
     # =================================================
-    # SORT
+    # LIMIT DATA
     # =================================================
 
-    df = df.sort_values(
+    try:
 
-        by="final_strategic_score",
+        df = df.nlargest(
+            50,
+            "final_strategic_score"
+        )
 
-        ascending=False
+    except:
 
-    ).head(50)
+        df = df.head(50)
 
     # =================================================
     # NETWORK
@@ -157,7 +172,7 @@ def build_network_graph(df):
         )
 
     # =================================================
-    # ADD EDGES
+    # EDGES
     # =================================================
 
     companies = df.to_dict("records")
