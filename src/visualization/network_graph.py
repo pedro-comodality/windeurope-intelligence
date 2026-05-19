@@ -1,5 +1,22 @@
-import networkx as nx
+import pandas as pd
 from pyvis.network import Network
+
+
+# =====================================================
+# SAFE BOOL
+# =====================================================
+
+def safe_bool(value):
+
+    if pd.isna(value):
+        return False
+
+    return str(value).lower() in [
+        "1",
+        "true",
+        "yes",
+        "si"
+    ]
 
 
 # =====================================================
@@ -8,16 +25,48 @@ from pyvis.network import Network
 
 def build_network_graph(df):
 
+    # =================================================
+    # LIMIT SIZE
+    # =================================================
+
+    df = df.sort_values(
+        "final_strategic_score",
+        ascending=False
+    ).head(120)
+
+    # =================================================
+    # NETWORK
+    # =================================================
+
     net = Network(
-        height="800px",
+
+        height="950px",
+
         width="100%",
-        bgcolor="#0E1117",
+
+        bgcolor="#07111f",
+
         font_color="white",
+
         notebook=False
     )
 
-    # physics
-    net.barnes_hut()
+    # =================================================
+    # PHYSICS
+    # =================================================
+
+    net.barnes_hut(
+
+        gravity=-12000,
+
+        central_gravity=0.2,
+
+        spring_length=180,
+
+        spring_strength=0.02,
+
+        damping=0.12
+    )
 
     # =================================================
     # ADD NODES
@@ -36,39 +85,126 @@ def build_network_graph(df):
             )
         )
 
-        offshore = bool(
-            row.get("offshore", False)
+        offshore = safe_bool(
+            row.get("offshore")
         )
 
-        floating = bool(
-            row.get("floating_wind", False)
+        floating = safe_bool(
+            row.get("floating_wind")
+        )
+
+        epc = safe_bool(
+            row.get("epc")
+        )
+
+        digital = safe_bool(
+            row.get("digitalizacion")
+        )
+
+        ai = safe_bool(
+            row.get("ia")
+        )
+
+        country = str(
+            row.get("country", "")
+        )
+
+        segment = str(
+            row.get("segmento", "")
+        )
+
+        score = int(
+            row.get(
+                "final_strategic_score",
+                50
+            )
         )
 
         # =============================================
-        # COLOR LOGIC
+        # LOGISTICS SCORE
+        # =============================================
+
+        logistics_score = 0
+
+        if offshore:
+            logistics_score += 3
+
+        if floating:
+            logistics_score += 4
+
+        if epc:
+            logistics_score += 3
+
+        if strategic == "ELITE":
+            logistics_score += 3
+
+        if score >= 80:
+            logistics_score += 2
+
+        # =============================================
+        # COLORS
         # =============================================
 
         color = "#4CAF50"
 
-        if strategic == "ELITE":
-            color = "#FF9800"
-
-        elif floating:
+        if floating:
             color = "#00BCD4"
 
         elif offshore:
             color = "#2196F3"
 
+        elif epc:
+            color = "#FF9800"
+
+        elif ai:
+            color = "#E91E63"
+
+        # =============================================
+        # NODE SIZE
+        # =============================================
+
+        node_size = max(
+            int(score / 3),
+            12
+        )
+
+        # =============================================
+        # TOOLTIP
+        # =============================================
+
+        tooltip = f"""
+        <b>{company}</b><br><br>
+
+        <b>Country:</b> {country}<br>
+        <b>Segment:</b> {segment}<br><br>
+
+        <b>Strategic:</b> {strategic}<br>
+        <b>Score:</b> {score}<br><br>
+
+        <b>Offshore:</b> {offshore}<br>
+        <b>Floating:</b> {floating}<br>
+        <b>EPC:</b> {epc}<br>
+        <b>AI:</b> {ai}<br><br>
+
+        <b>LOGISTICS OPPORTUNITY:</b>
+        {logistics_score}/15
+        """
+
+        # =============================================
+        # ADD NODE
+        # =============================================
+
         net.add_node(
+
             company,
+
             label=company,
+
+            title=tooltip,
+
             color=color,
-            title=f"""
-            <b>{company}</b><br>
-            Strategic: {strategic}<br>
-            Offshore: {offshore}<br>
-            Floating: {floating}
-            """
+
+            size=node_size
         )
 
     # =================================================
@@ -86,39 +222,145 @@ def build_network_graph(df):
 
             score = 0
 
-            # same segment
-            if c1.get("segmento") == c2.get("segmento"):
-                score += 1
+            # =========================================
+            # SAME SEGMENT
+            # =========================================
 
-            # offshore
-            if c1.get("offshore") and c2.get("offshore"):
-                score += 1
+            if (
+                c1.get("segmento")
+                ==
+                c2.get("segmento")
+            ):
 
-            # floating
-            if c1.get("floating_wind") and c2.get("floating_wind"):
                 score += 2
 
-            # epc
-            if c1.get("epc") and c2.get("epc"):
+            # =========================================
+            # BOTH OFFSHORE
+            # =========================================
+
+            if (
+                safe_bool(c1.get("offshore"))
+                and
+                safe_bool(c2.get("offshore"))
+            ):
+
+                score += 3
+
+            # =========================================
+            # BOTH FLOATING
+            # =========================================
+
+            if (
+                safe_bool(c1.get("floating_wind"))
+                and
+                safe_bool(c2.get("floating_wind"))
+            ):
+
+                score += 4
+
+            # =========================================
+            # BOTH EPC
+            # =========================================
+
+            if (
+                safe_bool(c1.get("epc"))
+                and
+                safe_bool(c2.get("epc"))
+            ):
+
+                score += 3
+
+            # =========================================
+            # BOTH DIGITAL
+            # =========================================
+
+            if (
+                safe_bool(c1.get("digitalizacion"))
+                and
+                safe_bool(c2.get("digitalizacion"))
+            ):
+
                 score += 1
 
-            # threshold
-            if score >= 2:
+            # =========================================
+            # BOTH AI
+            # =========================================
+
+            if (
+                safe_bool(c1.get("ia"))
+                and
+                safe_bool(c2.get("ia"))
+            ):
+
+                score += 2
+
+            # =========================================
+            # CONNECTION THRESHOLD
+            # =========================================
+
+            if score >= 5:
+
+                edge_color = "#ffaa00"
+
+                if score >= 8:
+                    edge_color = "#00BCD4"
 
                 net.add_edge(
+
                     str(c1.get("company")),
+
                     str(c2.get("company")),
-                    value=score
+
+                    value=score,
+
+                    width=min(score, 10),
+
+                    color=edge_color,
+
+                    title=f"""
+                    Relationship Strength:
+                    {score}
+                    """
                 )
 
     # =================================================
-    # RETURN HTML
+    # OPTIONS
     # =================================================
 
-    html = net.generate_html()
+    net.set_options("""
+    var options = {
 
-    print("HTML GENERATED")
+      "nodes": {
 
-    print(len(html))
+        "font": {
+          "size": 14,
+          "color": "white"
+        },
 
-    return html
+        "borderWidth": 1
+      },
+
+      "edges": {
+
+        "smooth": {
+          "type": "dynamic"
+        }
+      },
+
+      "interaction": {
+
+        "hover": true,
+
+        "navigationButtons": true,
+
+        "keyboard": true
+      },
+
+      "physics": {
+
+        "enabled": true
+      }
+    }
+    """)
+
+    return net.generate_html()
