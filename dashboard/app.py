@@ -1,3 +1,4 @@
+```python
 import streamlit as st
 import sys
 import os
@@ -167,30 +168,27 @@ def load_data():
 df = load_data()
 
 # =====================================================
-# NORMALIZATION
+# CLEAN + NORMALIZE
 # =====================================================
 
-# fillna
 df = df.fillna("")
 
-# =====================================================
-# FIX OBJECT / BOOL / ARROW ISSUES
-# =====================================================
+# remove duplicated columns
+df = df.loc[
+    :,
+    ~df.columns.duplicated()
+]
 
+# convert ALL object/bool columns to string
 for col in df.columns:
 
     try:
 
-        # bool → string
-        if df[col].dtype == "bool":
-
-            df[col] = (
-                df[col]
-                .astype(str)
-            )
-
-        # mixed object columns
-        elif df[col].dtype == "object":
+        if (
+            df[col].dtype == "object"
+            or
+            df[col].dtype == "bool"
+        ):
 
             df[col] = (
                 df[col]
@@ -203,15 +201,6 @@ for col in df.columns:
             df[col]
             .astype(str)
         )
-
-# =====================================================
-# REMOVE DUPLICATED COLUMNS
-# =====================================================
-
-df = df.loc[
-    :,
-    ~df.columns.duplicated()
-]
 
 # =====================================================
 # CLEAN COUNTRY
@@ -267,6 +256,23 @@ if "country" in df.columns:
 # =====================================================
 
 df = calculate_advanced_scores(df)
+
+# =====================================================
+# FINAL SAFE CONVERSION
+# =====================================================
+
+for col in df.columns:
+
+    try:
+
+        df[col] = (
+            df[col]
+            .astype(str)
+        )
+
+    except:
+
+        pass
 
 # =====================================================
 # SIDEBAR
@@ -414,7 +420,10 @@ with tab2:
         "🎯 Strategic Intelligence"
     )
 
-    strategic_df = top_strategic_companies(df)
+    strategic_df = (
+        top_strategic_companies(df)
+        .astype(str)
+    )
 
     st.dataframe(
         strategic_df.head(25),
@@ -438,7 +447,9 @@ with tab2:
             "🧠 Company Intelligence"
         )
 
-        st.write(row)
+        st.json(
+            row.astype(str).to_dict()
+        )
 
         summary = generate_executive_summary(
             row
@@ -530,13 +541,21 @@ with tab5:
         "Generate Network"
     ):
 
-        html_data = build_network_graph(df)
+        try:
 
-        components.html(
-            html_data,
-            height=1000,
-            scrolling=True
-        )
+            html_data = build_network_graph(df)
+
+            components.html(
+                html_data,
+                height=1000,
+                scrolling=True
+            )
+
+        except Exception as e:
+
+            st.error(
+                f"NETWORK ERROR: {e}"
+            )
 
 # =====================================================
 # TAB 6 — DEAL INTELLIGENCE
@@ -552,7 +571,10 @@ with tab6:
         "## 🏢 Top Acquisition Targets"
     )
 
-    acquisition_df = top_acquisition_targets(df)
+    acquisition_df = (
+        top_acquisition_targets(df)
+        .astype(str)
+    )
 
     st.dataframe(
 
@@ -572,7 +594,10 @@ with tab6:
         "## 🤝 Strategic Partnership Targets"
     )
 
-    partnership_df = top_partnership_targets(df)
+    partnership_df = (
+        top_partnership_targets(df)
+        .astype(str)
+    )
 
     st.dataframe(
 
@@ -592,7 +617,10 @@ with tab6:
         "## 🚀 Hidden Champions"
     )
 
-    hidden_df = hidden_champions(df)
+    hidden_df = (
+        hidden_champions(df)
+        .astype(str)
+    )
 
     st.dataframe(
 
@@ -654,7 +682,10 @@ with tab7:
         "## 📋 Current Watchlist"
     )
 
-    watchlist_df = load_watchlist()
+    watchlist_df = (
+        load_watchlist()
+        .astype(str)
+    )
 
     st.dataframe(
         watchlist_df,
@@ -678,11 +709,10 @@ with tab8:
         """
     )
 
-    logistics_df = top_logistics_targets(df)
-
-    # =================================================
-    # METRICS
-    # =================================================
+    logistics_df = (
+        top_logistics_targets(df)
+        .astype(str)
+    )
 
     col1, col2, col3 = st.columns(3)
 
@@ -713,10 +743,6 @@ with tab8:
         )
     )
 
-    # =================================================
-    # TABLE
-    # =================================================
-
     st.markdown(
         "## 🎯 Top Logistics Targets"
     )
@@ -737,10 +763,6 @@ with tab8:
         width="stretch"
     )
 
-    # =================================================
-    # TOP TARGET
-    # =================================================
-
     st.markdown(
         "## 🏆 Best Opportunity"
     )
@@ -759,4 +781,7 @@ with tab8:
             """
         )
 
-        st.write(top_target)
+        st.json(
+            top_target.to_dict()
+        )
+```
