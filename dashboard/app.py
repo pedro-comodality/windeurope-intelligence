@@ -8,6 +8,7 @@ import streamlit.components.v1 as components
 import streamlit_authenticator as stauth
 
 from yaml.loader import SafeLoader
+
 from pages.dashboard_page import (
     render_dashboard
 )
@@ -26,10 +27,10 @@ ROOT_DIR = os.path.abspath(
 if ROOT_DIR not in sys.path:
     sys.path.append(ROOT_DIR)
 
-
 # =====================================================
 # IMPORTS
 # =====================================================
+
 from src.crm.watchlist_engine import (
     load_watchlist,
     add_to_watchlist
@@ -40,6 +41,7 @@ from src.intelligence.deal_engine import (
     top_partnership_targets,
     hidden_champions
 )
+
 from src.reporting.pdf_report import (
     generate_executive_pdf
 )
@@ -64,10 +66,6 @@ from src.crm.crm_engine import (
     save_crm
 )
 
-from src.sales.meeting_prep import (
-    generate_meeting_prep
-)
-
 from src.scoring.advanced_scoring import (
     calculate_advanced_scores
 )
@@ -80,6 +78,28 @@ st.set_page_config(
     page_title="WindEurope Intelligence",
     layout="wide"
 )
+
+# =====================================================
+# SAFE DATAFRAME
+# =====================================================
+
+def safe_dataframe(df):
+
+    df = df.copy()
+
+    df = df.reset_index(drop=True)
+
+    for col in df.columns:
+
+        try:
+
+            df[col] = df[col].astype(str)
+
+        except Exception:
+
+            df[col] = ""
+
+    return df
 
 # =====================================================
 # AUTHENTICATION
@@ -166,25 +186,18 @@ def load_data():
     )
 
 df = load_data()
+
 # =====================================================
-# DATA CLEANING & NORMALIZATION
+# NORMALIZATION
 # =====================================================
 
-# reemplaza NaN
 df = df.fillna("")
 
-# convierte TODAS las columnas problemáticas
 for col in df.columns:
 
     try:
 
-        # convierte bool a string
-        if df[col].dtype == "bool":
-
-            df[col] = df[col].astype(str)
-
-        # convierte object mezclados
-        elif df[col].dtype == "object":
+        if df[col].dtype == "object":
 
             df[col] = df[col].astype(str)
 
@@ -193,7 +206,7 @@ for col in df.columns:
         pass
 
 # =====================================================
-# CLEAN COUNTRY COLUMN
+# CLEAN COUNTRY
 # =====================================================
 
 if "country" in df.columns:
@@ -240,27 +253,18 @@ if "country" in df.columns:
     df = df[
         df["country"] != ""
     ]
+
 # =====================================================
 # ADVANCED SCORING
 # =====================================================
 
 df = calculate_advanced_scores(df)
+
 # =====================================================
-# FINAL DATAFRAME NORMALIZATION
+# FINAL NORMALIZATION
 # =====================================================
 
-for col in df.columns:
-
-    try:
-
-        # convierte listas/problemáticos a string
-        if df[col].dtype == "object":
-
-            df[col] = df[col].astype(str)
-
-    except Exception:
-
-        pass
+df = safe_dataframe(df)
 
 # =====================================================
 # SIDEBAR
@@ -280,7 +284,6 @@ if search:
 
     df = df[
         df["company"]
-        .astype(str)
         .str.contains(
             search,
             case=False,
@@ -297,7 +300,6 @@ if "country" in df.columns:
     country_values = sorted(
         df["country"]
         .dropna()
-        .astype(str)
         .unique()
     )
 
@@ -311,7 +313,7 @@ if "country" in df.columns:
         df["country"]
         .isin(selected_countries)
     ]
- 
+
 # =====================================================
 # TABS
 # =====================================================
@@ -347,7 +349,9 @@ with tab2:
     strategic_df = top_strategic_companies(df)
 
     st.dataframe(
-        strategic_df.head(25),
+        safe_dataframe(
+            strategic_df.head(25)
+        ),
         width="stretch"
     )
 
@@ -384,22 +388,28 @@ with tab2:
             "📄 Generate Executive PDF"
         ):
 
-            pdf_path = generate_executive_pdf(
-                row,
-                summary
-            )
+            try:
 
-            with open(
-                pdf_path,
-                "rb"
-            ) as pdf_file:
-
-                st.download_button(
-                    label="⬇ Download PDF",
-                    data=pdf_file,
-                    file_name=f"{row['company']}.pdf",
-                    mime="application/pdf"
+                pdf_path = generate_executive_pdf(
+                    row,
+                    summary
                 )
+
+                with open(
+                    pdf_path,
+                    "rb"
+                ) as pdf_file:
+
+                    st.download_button(
+                        label="⬇ Download PDF",
+                        data=pdf_file,
+                        file_name=f"{row['company']}.pdf",
+                        mime="application/pdf"
+                    )
+
+            except Exception as e:
+
+                st.error(str(e))
 
 # =====================================================
 # TAB 3
@@ -417,12 +427,18 @@ with tab3:
 
     if question:
 
-        answer = ask_ai_analyst(
-            question,
-            df
-        )
+        try:
 
-        st.write(answer)
+            answer = ask_ai_analyst(
+                question,
+                df
+            )
+
+            st.write(answer)
+
+        except Exception as e:
+
+            st.error(str(e))
 
 # =====================================================
 # TAB 4
@@ -453,15 +469,21 @@ with tab4:
             "Save CRM"
         ):
 
-            save_crm(
-                row["company"],
-                crm_status,
-                crm_notes
-            )
+            try:
 
-            st.success(
-                "CRM Updated"
-            )
+                save_crm(
+                    row["company"],
+                    crm_status,
+                    crm_notes
+                )
+
+                st.success(
+                    "CRM Updated"
+                )
+
+            except Exception as e:
+
+                st.error(str(e))
 
 # =====================================================
 # TAB 5
@@ -477,24 +499,30 @@ with tab5:
         "Generate Network"
     ):
 
-        graph_path = build_network_graph(df)
+        try:
 
-        with open(
-            graph_path,
-            "r",
-            encoding="utf-8"
-        ) as f:
+            graph_path = build_network_graph(df)
 
-            html_data = f.read()
+            with open(
+                graph_path,
+                "r",
+                encoding="utf-8"
+            ) as f:
 
-        components.html(
-            html_data,
-            height=900,
-            scrolling=True
-        )
+                html_data = f.read()
+
+            components.html(
+                html_data,
+                height=900,
+                scrolling=True
+            )
+
+        except Exception as e:
+
+            st.error(str(e))
 
 # =====================================================
-# TAB 6 — DEAL INTELLIGENCE
+# TAB 6
 # =====================================================
 
 with tab6:
@@ -502,10 +530,6 @@ with tab6:
     st.subheader(
         "🧠 AI Deal Intelligence Engine"
     )
-
-    # =================================================
-    # ACQUISITION TARGETS
-    # =================================================
 
     st.markdown(
         "## 🏢 Top Acquisition Targets"
@@ -515,21 +539,21 @@ with tab6:
 
     st.dataframe(
 
-        acquisition_df[
-            [
-                "company",
-                "country",
-                "deal_score",
-                "final_strategic_score"
+        safe_dataframe(
+
+            acquisition_df[
+                [
+                    "company",
+                    "country",
+                    "deal_score",
+                    "final_strategic_score"
+                ]
             ]
-        ],
+
+        ),
 
         width="stretch"
     )
-
-    # =================================================
-    # PARTNERSHIP TARGETS
-    # =================================================
 
     st.markdown(
         "## 🤝 Strategic Partnership Targets"
@@ -539,21 +563,21 @@ with tab6:
 
     st.dataframe(
 
-        partnership_df[
-            [
-                "company",
-                "country",
-                "partnership_rank",
-                "partnership_score"
+        safe_dataframe(
+
+            partnership_df[
+                [
+                    "company",
+                    "country",
+                    "partnership_rank",
+                    "partnership_score"
+                ]
             ]
-        ],
+
+        ),
 
         width="stretch"
     )
-
-    # =================================================
-    # HIDDEN CHAMPIONS
-    # =================================================
 
     st.markdown(
         "## 🚀 Hidden Champions"
@@ -563,19 +587,24 @@ with tab6:
 
     st.dataframe(
 
-        hidden_df[
-            [
-                "company",
-                "country",
-                "final_strategic_score",
-                "strategic_category_v2"
+        safe_dataframe(
+
+            hidden_df[
+                [
+                    "company",
+                    "country",
+                    "final_strategic_score",
+                    "strategic_category_v2"
+                ]
             ]
-        ],
+
+        ),
 
         width="stretch"
     )
+
 # =====================================================
-# TAB 7 — WATCHLIST
+# TAB 7
 # =====================================================
 
 with tab7:
@@ -605,16 +634,22 @@ with tab7:
             "➕ Add To Watchlist"
         ):
 
-            add_to_watchlist(
-                row["company"],
-                row["country"],
-                watchlist_status,
-                watchlist_notes
-            )
+            try:
 
-            st.success(
-                "Added to watchlist"
-            )
+                add_to_watchlist(
+                    row["company"],
+                    row["country"],
+                    watchlist_status,
+                    watchlist_notes
+                )
+
+                st.success(
+                    "Added to watchlist"
+                )
+
+            except Exception as e:
+
+                st.error(str(e))
 
     st.markdown(
         "## 📋 Current Watchlist"
@@ -623,6 +658,8 @@ with tab7:
     watchlist_df = load_watchlist()
 
     st.dataframe(
-        watchlist_df,
+        safe_dataframe(
+            watchlist_df
+        ),
         width="stretch"
     )
