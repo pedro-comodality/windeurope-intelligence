@@ -14,23 +14,6 @@ def safe_numeric(series):
 
 
 # =====================================================
-# SAFE BOOL
-# =====================================================
-
-def safe_bool(value):
-
-    if pd.isna(value):
-        return False
-
-    return str(value).lower() in [
-        "1",
-        "true",
-        "yes",
-        "si"
-    ]
-
-
-# =====================================================
 # ACQUISITION TARGETS
 # =====================================================
 
@@ -154,159 +137,6 @@ def top_logistics_targets(df):
 
     logistics_df = df.copy()
 
-    # =================================================
-    # REQUIRED COLUMNS
-    # =================================================
-
-    required_columns = [
-
-        "final_strategic_score",
-        "growth_potential",
-        "market_presence"
-
-    ]
-
-    for col in required_columns:
-
-        if col not in logistics_df.columns:
-
-            logistics_df[col] = 0
-
-    # =================================================
-    # SAFE NUMERIC
-    # =================================================
-
-    logistics_df["final_strategic_score"] = safe_numeric(
-        logistics_df["final_strategic_score"]
-    )
-
-    logistics_df["growth_potential"] = safe_numeric(
-        logistics_df["growth_potential"]
-    )
-
-    logistics_df["market_presence"] = safe_numeric(
-        logistics_df["market_presence"]
-    )
-
-    # =================================================
-    # LOGISTICS SCORE
-    # =================================================
-
-    scores = []
-
-    for _, row in logistics_df.iterrows():
-
-        score = 0
-
-        # =============================================
-        # OFFSHORE
-        # =============================================
-
-        if safe_bool(row.get("offshore")):
-            score += 25
-
-        # =============================================
-        # FLOATING
-        # =============================================
-
-        if safe_bool(row.get("floating_wind")):
-            score += 30
-
-        # =============================================
-        # EPC
-        # =============================================
-
-        if safe_bool(row.get("epc")):
-            score += 25
-
-        # =============================================
-        # MARITIME
-        # =============================================
-
-        if safe_bool(row.get("maritime_logistics")):
-            score += 15
-
-        # =============================================
-        # STRATEGIC SCORE
-        # =============================================
-
-        score += (
-            row.get(
-                "final_strategic_score",
-                0
-            ) * 0.20
-        )
-
-        # =============================================
-        # GROWTH
-        # =============================================
-
-        score += (
-            row.get(
-                "growth_potential",
-                0
-            ) * 5
-        )
-
-        # =============================================
-        # MARKET PRESENCE
-        # =============================================
-
-        score += (
-            row.get(
-                "market_presence",
-                0
-            ) * 4
-        )
-
-        scores.append(round(score, 2))
-
-    logistics_df["logistics_opportunity_score"] = scores
-
-    # =================================================
-    # PRIORITY CATEGORY
-    # =================================================
-
-    def classify(score):
-
-        if score >= 85:
-            return "MEGA TARGET"
-
-        elif score >= 65:
-            return "HIGH PRIORITY"
-
-        elif score >= 45:
-            return "STRATEGIC"
-
-        else:
-            return "MONITOR"
-
-    logistics_df["logistics_priority"] = (
-
-        logistics_df[
-            "logistics_opportunity_score"
-        ].apply(classify)
-    )
-
-    # =================================================
-    # SORT
-    # =================================================
-
-    return logistics_df.sort_values(
-
-        by="logistics_opportunity_score",
-
-        ascending=False
-
-    ).head(30)
-# =====================================================
-# LOGISTICS TARGETS
-# =====================================================
-
-def top_logistics_targets(df):
-
-    logistics_df = df.copy()
-
     required_columns = [
 
         "offshore_score",
@@ -339,7 +169,7 @@ def top_logistics_targets(df):
     )
 
     # =================================================
-    # LOGISTICS OPPORTUNITY SCORE
+    # LOGISTICS SCORE
     # =================================================
 
     logistics_df["logistics_opportunity_score"] = (
