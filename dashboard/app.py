@@ -200,7 +200,60 @@ def load_data():
     )
 
 df = load_data()
+# =====================================================
+# CLEAN COUNTRY COLUMN
+# =====================================================
 
+if "country" in df.columns:
+
+    df["country"] = (
+
+        df["country"]
+
+        .astype(str)
+
+        # elimina Powered by TCPDF
+        .str.replace(
+            r"Powered by TCPDF.*",
+            "",
+            regex=True
+        )
+
+        # elimina patrones tipo 123 / 199
+        .str.replace(
+            r"\d+\s*/\s*\d+",
+            "",
+            regex=True
+        )
+
+        # elimina números sueltos
+        .str.replace(
+            r"\d+",
+            "",
+            regex=True
+        )
+
+        # elimina símbolos extra
+        .str.replace(
+            r"[/()-]",
+            "",
+            regex=True
+        )
+
+        # limpia espacios múltiples
+        .str.replace(
+            r"\s+",
+            " ",
+            regex=True
+        )
+
+        .str.strip()
+    )
+
+    # elimina vacíos
+    df = df[
+        df["country"] != ""
+    ]
 # =====================================================
 # ADVANCED SCORING
 # =====================================================
