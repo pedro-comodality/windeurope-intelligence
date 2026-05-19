@@ -1,6 +1,13 @@
 import streamlit as st
 import sys
 import os
+import yaml
+import pandas as pd
+import plotly.express as px
+import streamlit.components.v1 as components
+import streamlit_authenticator as stauth
+
+from yaml.loader import SafeLoader
 
 # =====================================================
 # PATH FIX
@@ -20,71 +27,48 @@ if ROOT_DIR not in sys.path:
 # IMPORTS
 # =====================================================
 
-import yaml
-import pandas as pd
-import plotly.express as px
-import streamlit.components.v1 as components
-import streamlit_authenticator as stauth
-
-from yaml.loader import SafeLoader
-
-# =====================================================
-# SCORING
-# =====================================================
-
-from src.scoring.advanced_scoring import (
-    calculate_advanced_scores
+from src.crm.watchlist_engine import (
+    load_watchlist,
+    add_to_watchlist
 )
-
-# =====================================================
-# NETWORK
-# =====================================================
-
-from src.visualization.network_graph import (
-    build_network_graph
-)
-
-# =====================================================
-# INTELLIGENCE
-# =====================================================
 
 from src.intelligence.deal_engine import (
     top_acquisition_targets,
     top_partnership_targets,
-    hidden_champions
+    hidden_champions,
+    top_logistics_targets
 )
 
-from src.profiling.recommendation_engine import (
-    top_strategic_companies
+from src.reporting.pdf_report import (
+    generate_executive_pdf
 )
 
 from src.profiling.executive_summary import (
     generate_executive_summary
 )
 
+from src.visualization.network_graph import (
+    build_network_graph
+)
+
+from src.profiling.recommendation_engine import (
+    top_strategic_companies
+)
+
 from src.profiling.chat_analyst import (
     ask_ai_analyst
 )
-
-# =====================================================
-# REPORTING
-# =====================================================
-
-from src.reporting.pdf_report import (
-    generate_executive_pdf
-)
-
-# =====================================================
-# CRM
-# =====================================================
 
 from src.crm.crm_engine import (
     save_crm
 )
 
-from src.crm.watchlist_engine import (
-    load_watchlist,
-    add_to_watchlist
+from src.sales.meeting_prep import (
+    generate_meeting_prep
+)
+
+from src.scoring.advanced_scoring import (
+    calculate_advanced_scores
 )
 
 # =====================================================
@@ -95,28 +79,6 @@ st.set_page_config(
     page_title="WindEurope Intelligence",
     layout="wide"
 )
-
-# =====================================================
-# SAFE DATAFRAME
-# =====================================================
-
-def safe_dataframe(df):
-
-    df = df.copy()
-
-    df = df.reset_index(drop=True)
-
-    for col in df.columns:
-
-        try:
-
-            df[col] = df[col].astype(str)
-
-        except Exception:
-
-            df[col] = ""
-
-    return df
 
 # =====================================================
 # AUTHENTICATION
@@ -208,19 +170,13 @@ df = load_data()
 # NORMALIZATION
 # =====================================================
 
-df = df.fillna("")
-
 for col in df.columns:
 
-    try:
+    if df[col].dtype == "object":
 
-        if df[col].dtype == "object":
+        df[col] = df[col].astype(str)
 
-            df[col] = df[col].astype(str)
-
-    except Exception:
-
-        pass
+df = df.fillna("")
 
 # =====================================================
 # CLEAN COUNTRY
@@ -278,12 +234,6 @@ if "country" in df.columns:
 df = calculate_advanced_scores(df)
 
 # =====================================================
-# FINAL NORMALIZATION
-# =====================================================
-
-df = safe_dataframe(df)
-
-# =====================================================
 # SIDEBAR
 # =====================================================
 
@@ -301,6 +251,7 @@ if search:
 
     df = df[
         df["company"]
+        .astype(str)
         .str.contains(
             search,
             case=False,
@@ -315,38 +266,57 @@ if search:
 if "country" in df.columns:
 
     country_values = sorted(
+
         df["country"]
+
         .dropna()
+
+        .astype(str)
+
         .unique()
     )
 
     selected_countries = st.sidebar.multiselect(
+
         "🌍 Countries",
+
         options=country_values,
-        default=country_values
+
+        default=country_values[:5]
     )
 
-    df = df[
-        df["country"]
-        .isin(selected_countries)
-    ]
+    if selected_countries:
+
+        df = df[
+            df["country"]
+            .isin(selected_countries)
+        ]
 
 # =====================================================
 # TABS
 # =====================================================
 
-tab1, tab2, tab3, tab4, tab5, tab6, tab7 = st.tabs([
+tab1, tab2, tab3, tab4, tab5, tab6, tab7, tab8 = st.tabs([
+
     "📊 Dashboard",
+
     "🧠 Intelligence",
+
     "🤖 AI Analyst",
+
     "📌 CRM",
+
     "🌐 Network",
+
     "🧠 Deal Intelligence",
-    "⭐ Watchlist"
+
+    "⭐ Watchlist",
+
+    "🚢 Logistics Intelligence"
 ])
 
 # =====================================================
-# TAB 1 — DASHBOARD
+# TAB 1
 # =====================================================
 
 with tab1:
@@ -396,11 +366,11 @@ with tab1:
 
     st.plotly_chart(
         country_chart,
-        width="stretch"
+        use_container_width=True
     )
 
 # =====================================================
-# TAB 2 — INTELLIGENCE
+# TAB 2
 # =====================================================
 
 with tab2:
@@ -412,10 +382,8 @@ with tab2:
     strategic_df = top_strategic_companies(df)
 
     st.dataframe(
-        safe_dataframe(
-            strategic_df.head(25)
-        ),
-        width="stretch"
+        strategic_df.head(25),
+        use_container_width=True
     )
 
     company_selected = st.selectbox(
@@ -447,35 +415,8 @@ with tab2:
 
         st.write(summary)
 
-        if st.button(
-            "📄 Generate Executive PDF"
-        ):
-
-            try:
-
-                pdf_path = generate_executive_pdf(
-                    row,
-                    summary
-                )
-
-                with open(
-                    pdf_path,
-                    "rb"
-                ) as pdf_file:
-
-                    st.download_button(
-                        label="⬇ Download PDF",
-                        data=pdf_file,
-                        file_name=f"{row['company']}.pdf",
-                        mime="application/pdf"
-                    )
-
-            except Exception as e:
-
-                st.error(str(e))
-
 # =====================================================
-# TAB 3 — AI ANALYST
+# TAB 3
 # =====================================================
 
 with tab3:
@@ -490,21 +431,15 @@ with tab3:
 
     if question:
 
-        try:
+        answer = ask_ai_analyst(
+            question,
+            df
+        )
 
-            answer = ask_ai_analyst(
-                question,
-                df
-            )
-
-            st.write(answer)
-
-        except Exception as e:
-
-            st.error(str(e))
+        st.write(answer)
 
 # =====================================================
-# TAB 4 — CRM
+# TAB 4
 # =====================================================
 
 with tab4:
@@ -532,21 +467,15 @@ with tab4:
             "Save CRM"
         ):
 
-            try:
+            save_crm(
+                row["company"],
+                crm_status,
+                crm_notes
+            )
 
-                save_crm(
-                    row["company"],
-                    crm_status,
-                    crm_notes
-                )
-
-                st.success(
-                    "CRM Updated"
-                )
-
-            except Exception as e:
-
-                st.error(str(e))
+            st.success(
+                "CRM Updated"
+            )
 
 # =====================================================
 # TAB 5 — NETWORK
@@ -554,29 +483,25 @@ with tab4:
 
 with tab5:
 
-    st.subheader("🌐 Ecosystem Network")
+    st.subheader(
+        "🌐 Ecosystem Network"
+    )
 
-    st.write("ROWS:", len(df))
+    st.write(
+        f"ROWS: {len(df)}"
+    )
 
-    if st.button("Generate Network"):
+    if st.button(
+        "Generate Network"
+    ):
 
-        try:
+        html_data = build_network_graph(df)
 
-            small_df = df.head(50)
-
-            html_data = build_network_graph(
-                small_df
-            )
-
-            st.components.v1.html(
-                html_data,
-                height=900,
-                scrolling=True
-            )
-
-        except Exception as e:
-
-            st.error(str(e))
+        components.html(
+            html_data,
+            height=1000,
+            scrolling=True
+        )
 
 # =====================================================
 # TAB 6 — DEAL INTELLIGENCE
@@ -596,20 +521,16 @@ with tab6:
 
     st.dataframe(
 
-        safe_dataframe(
-
-            acquisition_df[
-                [
-                    "company",
-                    "country",
-                    "deal_score",
-                    "final_strategic_score"
-                ]
+        acquisition_df[
+            [
+                "company",
+                "country",
+                "deal_score",
+                "final_strategic_score"
             ]
+        ],
 
-        ),
-
-        width="stretch"
+        use_container_width=True
     )
 
     st.markdown(
@@ -620,20 +541,16 @@ with tab6:
 
     st.dataframe(
 
-        safe_dataframe(
-
-            partnership_df[
-                [
-                    "company",
-                    "country",
-                    "partnership_rank",
-                    "partnership_score"
-                ]
+        partnership_df[
+            [
+                "company",
+                "country",
+                "partnership_rank",
+                "partnership_score"
             ]
+        ],
 
-        ),
-
-        width="stretch"
+        use_container_width=True
     )
 
     st.markdown(
@@ -644,20 +561,16 @@ with tab6:
 
     st.dataframe(
 
-        safe_dataframe(
-
-            hidden_df[
-                [
-                    "company",
-                    "country",
-                    "final_strategic_score",
-                    "strategic_category_v2"
-                ]
+        hidden_df[
+            [
+                "company",
+                "country",
+                "final_strategic_score",
+                "strategic_category_v2"
             ]
+        ],
 
-        ),
-
-        width="stretch"
+        use_container_width=True
     )
 
 # =====================================================
@@ -691,22 +604,16 @@ with tab7:
             "➕ Add To Watchlist"
         ):
 
-            try:
+            add_to_watchlist(
+                row["company"],
+                row["country"],
+                watchlist_status,
+                watchlist_notes
+            )
 
-                add_to_watchlist(
-                    row["company"],
-                    row["country"],
-                    watchlist_status,
-                    watchlist_notes
-                )
-
-                st.success(
-                    "Added to watchlist"
-                )
-
-            except Exception as e:
-
-                st.error(str(e))
+            st.success(
+                "Added to watchlist"
+            )
 
     st.markdown(
         "## 📋 Current Watchlist"
@@ -715,8 +622,106 @@ with tab7:
     watchlist_df = load_watchlist()
 
     st.dataframe(
-        safe_dataframe(
-            watchlist_df
-        ),
-        width="stretch"
+        watchlist_df,
+        use_container_width=True
     )
+
+# =====================================================
+# TAB 8 — LOGISTICS INTELLIGENCE
+# =====================================================
+
+with tab8:
+
+    st.subheader(
+        "🚢 Logistics Intelligence Engine"
+    )
+
+    st.markdown(
+        """
+        AI-powered logistics opportunity
+        detection across offshore wind ecosystem.
+        """
+    )
+
+    logistics_df = top_logistics_targets(df)
+
+    # =================================================
+    # METRICS
+    # =================================================
+
+    col1, col2, col3 = st.columns(3)
+
+    col1.metric(
+        "Targets",
+        len(logistics_df)
+    )
+
+    col2.metric(
+        "Mega Targets",
+        len(
+            logistics_df[
+                logistics_df[
+                    "logistics_priority"
+                ] == "MEGA TARGET"
+            ]
+        )
+    )
+
+    col3.metric(
+        "High Priority",
+        len(
+            logistics_df[
+                logistics_df[
+                    "logistics_priority"
+                ] == "HIGH PRIORITY"
+            ]
+        )
+    )
+
+    # =================================================
+    # TABLE
+    # =================================================
+
+    st.markdown(
+        "## 🎯 Top Logistics Targets"
+    )
+
+    st.dataframe(
+
+        logistics_df[
+            [
+                "company",
+                "country",
+                "segmento",
+                "logistics_opportunity_score",
+                "logistics_priority",
+                "final_strategic_score"
+            ]
+        ],
+
+        use_container_width=True
+    )
+
+    # =================================================
+    # TOP TARGET
+    # =================================================
+
+    st.markdown(
+        "## 🏆 Best Opportunity"
+    )
+
+    if len(logistics_df) > 0:
+
+        top_target = logistics_df.iloc[0]
+
+        st.success(
+            f"""
+            TOP TARGET:
+            {top_target['company']}
+
+            Logistics Score:
+            {top_target['logistics_opportunity_score']}
+            """
+        )
+
+        st.write(top_target)

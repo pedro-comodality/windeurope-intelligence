@@ -14,6 +14,23 @@ def safe_numeric(series):
 
 
 # =====================================================
+# SAFE BOOL
+# =====================================================
+
+def safe_bool(value):
+
+    if pd.isna(value):
+        return False
+
+    return str(value).lower() in [
+        "1",
+        "true",
+        "yes",
+        "si"
+    ]
+
+
+# =====================================================
 # ACQUISITION TARGETS
 # =====================================================
 
@@ -21,7 +38,6 @@ def top_acquisition_targets(df):
 
     acquisition_df = df.copy()
 
-    # safe columns
     required_columns = [
 
         "growth_potential",
@@ -36,7 +52,6 @@ def top_acquisition_targets(df):
 
             acquisition_df[col] = 0
 
-    # numeric conversion
     acquisition_df["growth_potential"] = safe_numeric(
         acquisition_df["growth_potential"]
     )
@@ -49,7 +64,6 @@ def top_acquisition_targets(df):
         acquisition_df["final_strategic_score"]
     )
 
-    # final score
     acquisition_df["deal_score"] = (
 
         acquisition_df["growth_potential"] * 0.30 +
@@ -61,8 +75,11 @@ def top_acquisition_targets(df):
     ).round(2)
 
     return acquisition_df.sort_values(
+
         by="deal_score",
+
         ascending=False
+
     ).head(25)
 
 
@@ -83,12 +100,17 @@ def top_partnership_targets(df):
     )
 
     partnership_df = partnership_df.sort_values(
+
         by="partnership_score",
+
         ascending=False
+
     ).head(25)
 
     partnership_df["partnership_rank"] = range(
+
         1,
+
         len(partnership_df) + 1
     )
 
@@ -116,6 +138,164 @@ def hidden_champions(df):
     ]
 
     return hidden_df.sort_values(
+
         by="final_strategic_score",
+
         ascending=False
+
     ).head(25)
+
+
+# =====================================================
+# LOGISTICS TARGETS
+# =====================================================
+
+def top_logistics_targets(df):
+
+    logistics_df = df.copy()
+
+    # =================================================
+    # REQUIRED COLUMNS
+    # =================================================
+
+    required_columns = [
+
+        "final_strategic_score",
+        "growth_potential",
+        "market_presence"
+
+    ]
+
+    for col in required_columns:
+
+        if col not in logistics_df.columns:
+
+            logistics_df[col] = 0
+
+    # =================================================
+    # SAFE NUMERIC
+    # =================================================
+
+    logistics_df["final_strategic_score"] = safe_numeric(
+        logistics_df["final_strategic_score"]
+    )
+
+    logistics_df["growth_potential"] = safe_numeric(
+        logistics_df["growth_potential"]
+    )
+
+    logistics_df["market_presence"] = safe_numeric(
+        logistics_df["market_presence"]
+    )
+
+    # =================================================
+    # LOGISTICS SCORE
+    # =================================================
+
+    scores = []
+
+    for _, row in logistics_df.iterrows():
+
+        score = 0
+
+        # =============================================
+        # OFFSHORE
+        # =============================================
+
+        if safe_bool(row.get("offshore")):
+            score += 25
+
+        # =============================================
+        # FLOATING
+        # =============================================
+
+        if safe_bool(row.get("floating_wind")):
+            score += 30
+
+        # =============================================
+        # EPC
+        # =============================================
+
+        if safe_bool(row.get("epc")):
+            score += 25
+
+        # =============================================
+        # MARITIME
+        # =============================================
+
+        if safe_bool(row.get("maritime_logistics")):
+            score += 15
+
+        # =============================================
+        # STRATEGIC SCORE
+        # =============================================
+
+        score += (
+            row.get(
+                "final_strategic_score",
+                0
+            ) * 0.20
+        )
+
+        # =============================================
+        # GROWTH
+        # =============================================
+
+        score += (
+            row.get(
+                "growth_potential",
+                0
+            ) * 5
+        )
+
+        # =============================================
+        # MARKET PRESENCE
+        # =============================================
+
+        score += (
+            row.get(
+                "market_presence",
+                0
+            ) * 4
+        )
+
+        scores.append(round(score, 2))
+
+    logistics_df["logistics_opportunity_score"] = scores
+
+    # =================================================
+    # PRIORITY CATEGORY
+    # =================================================
+
+    def classify(score):
+
+        if score >= 85:
+            return "MEGA TARGET"
+
+        elif score >= 65:
+            return "HIGH PRIORITY"
+
+        elif score >= 45:
+            return "STRATEGIC"
+
+        else:
+            return "MONITOR"
+
+    logistics_df["logistics_priority"] = (
+
+        logistics_df[
+            "logistics_opportunity_score"
+        ].apply(classify)
+    )
+
+    # =================================================
+    # SORT
+    # =================================================
+
+    return logistics_df.sort_values(
+
+        by="logistics_opportunity_score",
+
+        ascending=False
+
+    ).head(30)
